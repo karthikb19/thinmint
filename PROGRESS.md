@@ -38,3 +38,18 @@ Known risks:
 - no engine code or verification script exists yet
 - active sprint file now assumes C++ and CMake, but the codebase is still uninitialized
 Next suggested feature: S01-F01 initialize the C++ project and build system
+
+## 2026-04-25 19:52
+Sprint: meta
+Feature: META-002
+Title: Scaffold buildable C++ project baseline for OpenCode
+Reason selected: the loop needed a real CMake project and verification entrypoint before autonomous work could begin
+Files changed: CMakeLists.txt, README.md, include/thinmint/core/version.h, include/thinmint/board/README.md, include/thinmint/movegen/README.md, include/thinmint/search/README.md, include/thinmint/uci/README.md, src/core/version.cpp, src/main.cpp, src/board/README.md, src/movegen/README.md, src/search/README.md, src/uci/README.md, tests/unit/smoke_test.cpp, tests/perft/README.md, scripts/verify.sh
+Tests run: ./scripts/verify.sh
+Perft status: not applicable
+Git checkpoint: pending
+Result: success
+Known risks:
+- this is scaffolding only and does not implement any chess-domain behavior
+- sprint items remain intentionally unmodified even though some bootstrap acceptance criteria now exist on disk
+Next suggested feature: point OpenCode at SPRINT.json and let it start with the first real engine feature
