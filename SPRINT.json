@@ -2,14 +2,14 @@
   {
     "id": "S01-F01",
     "sprint": "sprint-01",
-    "title": "Choose the implementation language and initialize the project",
+    "title": "Initialize the C++ project and build system",
     "category": "bootstrap",
     "priority": 1,
     "depends_on": [],
-    "description": "Create the first buildable thinmint project in a systems language suitable for bitboards and search.",
+    "description": "Create the first buildable thinmint C++ project with a simple CMake-based build.",
     "acceptance": [
-      "Repository has a build file and lockfile if the language uses one",
-      "A single documented build command succeeds",
+      "Repository has a top-level CMakeLists.txt",
+      "A single documented CMake build command succeeds",
       "A main executable entrypoint exists"
     ],
     "passes": false
@@ -21,9 +21,9 @@
     "category": "bootstrap",
     "priority": 2,
     "depends_on": ["S01-F01"],
-    "description": "Add the source, test, and script directories so later work lands in stable places.",
+    "description": "Add the C++ source, header, test, and script directories so later work lands in stable places.",
     "acceptance": [
-      "Source directories exist for board, move generation, search, and UCI",
+      "Source directories or module folders exist for board, move generation, search, and UCI",
       "Test directories exist for unit and perft coverage",
       "Scripts directory exists for verification helpers"
     ],
@@ -54,7 +54,7 @@
     "description": "Create the first passing tests so the loop always has a regression signal.",
     "acceptance": [
       "At least one unit test passes",
-      "At least one binary or CLI smoke test exists",
+      "At least one built binary or CLI smoke test exists",
       "Tests run through scripts/verify.sh"
     ],
     "passes": false
@@ -125,7 +125,7 @@
     "depends_on": ["S01-F06", "S01-F07"],
     "description": "Represent every field needed for a legal chess position.",
     "acceptance": [
-      "Board state stores piece bitboards by color and piece type",
+      "Board state stores piece bitboards by color and piece type using fixed-width integer types",
       "Board state stores white, black, and combined occupancy",
       "Board state stores side to move, castling rights, en passant square, and clocks"
     ],

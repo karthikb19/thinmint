@@ -36,5 +36,5 @@ Git checkpoint: 0a1b9a3 checkpoint(meta): initialize thinmint planning docs
 Result: success
 Known risks:
 - no engine code or verification script exists yet
-- active sprint file still assumes a future language/toolchain choice
-Next suggested feature: S01-F01 choose the implementation language and initialize the project
+- active sprint file now assumes C++ and CMake, but the codebase is still uninitialized
+Next suggested feature: S01-F01 initialize the C++ project and build system

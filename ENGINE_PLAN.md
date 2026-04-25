@@ -4,7 +4,19 @@ Build a bitboard-based chess engine with correct legal move generation, perft va
 
 ## Language
 
-Use the language already present in the repo. If starting fresh, use C++17 or Rust.
+Use C++ for `thinmint`.
+
+Recommended baseline:
+
+- C++20
+- CMake
+- `ctest` for test execution
+- `clang++` or `g++`
+
+Do not introduce heavy dependencies early. Keep Sprint 01 close to:
+
+- standard library
+- a small test framework only if needed, or plain executable tests
 
 ## Engine architecture
 
@@ -81,7 +93,7 @@ Goal: make `thinmint` buildable, testable, and capable of loading a position saf
 
 Scope:
 
-- choose language and toolchain
+- initialize C++20 and CMake toolchain
 - create source, test, and scripts layout
 - create build command
 - create test command
@@ -98,6 +110,7 @@ Scope:
 Required tests:
 
 - smoke test for buildable binary
+- configure/build test via CMake
 - unit tests for bitboard primitives
 - unit tests for square mapping
 - unit tests for move encoding flags
@@ -109,9 +122,17 @@ Required tests:
 Exit criteria:
 
 - one-command verification works
+- `cmake -S . -B build && cmake --build build` succeeds
 - start position parses correctly
 - board state is represented fully enough for move generation work
 - the repo has its first stable checkpoint chain
+
+Implementation guidance:
+
+- prefer a small static library target for engine code plus one executable target
+- keep headers and source files split by module
+- avoid template-heavy abstractions in the early sprints
+- prefer explicit integer types like `uint64_t`, `uint32_t`, and `int32_t`
 
 ### Sprint 02: Attack Generation and Legal Move Correctness
 
