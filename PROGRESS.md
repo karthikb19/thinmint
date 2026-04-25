@@ -47,7 +47,7 @@ Reason selected: the loop needed a real CMake project and verification entrypoin
 Files changed: CMakeLists.txt, README.md, include/thinmint/core/version.h, include/thinmint/board/README.md, include/thinmint/movegen/README.md, include/thinmint/search/README.md, include/thinmint/uci/README.md, src/core/version.cpp, src/main.cpp, src/board/README.md, src/movegen/README.md, src/search/README.md, src/uci/README.md, tests/unit/smoke_test.cpp, tests/perft/README.md, scripts/verify.sh
 Tests run: ./scripts/verify.sh
 Perft status: not applicable
-Git checkpoint: pending
+Git checkpoint: 275614e checkpoint(meta): scaffold C++ project baseline
 Result: success
 Known risks:
 - this is scaffolding only and does not implement any chess-domain behavior
