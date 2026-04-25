@@ -1,0 +1,145 @@
+[
+  {
+    "id": "S02-F01",
+    "sprint": "sprint-02",
+    "title": "Implement pawn attack masks and movement helpers",
+    "category": "movegen",
+    "priority": 1,
+    "depends_on": [],
+    "description": "Create the pawn-specific attack and movement primitives needed for generation.",
+    "acceptance": [
+      "White and black pawn attack masks are correct",
+      "Edge-file behavior is covered by tests"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S02-F02",
+    "sprint": "sprint-02",
+    "title": "Implement knight and king attack generation",
+    "category": "movegen",
+    "priority": 2,
+    "depends_on": [],
+    "description": "Add precomputed or computed attack masks for knight and king moves.",
+    "acceptance": [
+      "Knight attacks are correct from center, edge, and corner squares",
+      "King attacks are correct from center, edge, and corner squares"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S02-F03",
+    "sprint": "sprint-02",
+    "title": "Implement bishop, rook, and queen sliding attacks",
+    "category": "movegen",
+    "priority": 3,
+    "depends_on": ["S02-F02"],
+    "description": "Generate sliding attacks with occupancy-aware ray traversal or a later-optimizable approach.",
+    "acceptance": [
+      "Sliding attacks stop at blockers correctly",
+      "Tests cover blockers, captures, and empty rays"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S02-F04",
+    "sprint": "sprint-02",
+    "title": "Implement pseudo-legal move generation for all piece types",
+    "category": "movegen",
+    "priority": 4,
+    "depends_on": ["S02-F01", "S02-F02", "S02-F03"],
+    "description": "Generate pseudo-legal quiet and capture moves for every piece, including promotions and double pushes.",
+    "acceptance": [
+      "Move lists are generated for all piece types",
+      "Captures and quiet moves are both included",
+      "Promotion moves are generated correctly"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S02-F05",
+    "sprint": "sprint-02",
+    "title": "Implement king-in-check detection",
+    "category": "legality",
+    "priority": 5,
+    "depends_on": ["S02-F01", "S02-F02", "S02-F03"],
+    "description": "Detect whether a side's king is attacked in the current position.",
+    "acceptance": [
+      "Check detection works for all piece types",
+      "Unit tests cover direct checks and discovered checks"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S02-F06",
+    "sprint": "sprint-02",
+    "title": "Implement castling and en passant generation rules",
+    "category": "legality",
+    "priority": 6,
+    "depends_on": ["S02-F04", "S02-F05"],
+    "description": "Add pseudo-legal generation for castling and en passant before final legality filtering.",
+    "acceptance": [
+      "Castling rights are honored",
+      "Blocked or attacked castling paths are excluded when legality is checked",
+      "En passant candidates are generated only when the ep square is present"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S02-F07",
+    "sprint": "sprint-02",
+    "title": "Implement pin handling and legal move filtering",
+    "category": "legality",
+    "priority": 7,
+    "depends_on": ["S02-F04", "S02-F05", "S02-F06"],
+    "description": "Restrict pseudo-legal moves down to fully legal moves, including pinned pieces and evasions while in check.",
+    "acceptance": [
+      "Pinned pieces cannot expose the king illegally",
+      "Check evasions are limited to legal responses",
+      "Legal move lists contain no king-exposing moves"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S02-F08",
+    "sprint": "sprint-02",
+    "title": "Add perft runner and baseline perft fixtures",
+    "category": "validation",
+    "priority": 8,
+    "depends_on": ["S02-F07"],
+    "description": "Create a perft tool or test harness for validating move generation.",
+    "acceptance": [
+      "Perft can run on an arbitrary FEN and depth",
+      "Fixture-based perft tests exist"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S02-F09",
+    "sprint": "sprint-02",
+    "title": "Pass start position and Kiwipete perft gates",
+    "category": "validation",
+    "priority": 9,
+    "depends_on": ["S02-F08"],
+    "description": "Use the perft harness to prove foundational move legality on standard regression positions.",
+    "acceptance": [
+      "Starting position perft matches expected counts for target depths",
+      "Kiwipete perft matches expected counts for target depths"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S02-F10",
+    "sprint": "sprint-02",
+    "title": "Pass targeted perft positions for special rules",
+    "category": "validation",
+    "priority": 10,
+    "depends_on": ["S02-F09"],
+    "description": "Validate tricky positions covering castling, promotions, checks, pins, and en passant.",
+    "acceptance": [
+      "Targeted fixtures for special rules are present",
+      "Each targeted perft fixture passes"
+    ],
+    "passes": false
+  }
+]

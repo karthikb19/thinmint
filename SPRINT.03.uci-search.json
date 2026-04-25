@@ -1,0 +1,149 @@
+[
+  {
+    "id": "S03-F01",
+    "sprint": "sprint-03",
+    "title": "Implement make move for quiet moves and captures",
+    "category": "state",
+    "priority": 1,
+    "depends_on": [],
+    "description": "Apply standard moves to board state while updating occupancy and clocks.",
+    "acceptance": [
+      "Quiet moves update piece and occupancy state correctly",
+      "Captures remove the captured piece correctly",
+      "Unit tests cover both move classes"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S03-F02",
+    "sprint": "sprint-03",
+    "title": "Implement make move for castling, en passant, and promotions",
+    "category": "state",
+    "priority": 2,
+    "depends_on": ["S03-F01"],
+    "description": "Apply all special move classes safely and consistently.",
+    "acceptance": [
+      "Castling moves king and rook correctly",
+      "En passant removes the correct pawn",
+      "Promotion replaces the pawn with the promoted piece"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S03-F03",
+    "sprint": "sprint-03",
+    "title": "Implement unmake move with undo state",
+    "category": "state",
+    "priority": 3,
+    "depends_on": ["S03-F02"],
+    "description": "Restore prior state exactly after every move class.",
+    "acceptance": [
+      "Undo data captures enough information for all move classes",
+      "Round-trip tests restore the original board exactly"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S03-F04",
+    "sprint": "sprint-03",
+    "title": "Add make/unmake stress tests and random sequence regression tests",
+    "category": "validation",
+    "priority": 4,
+    "depends_on": ["S03-F03"],
+    "description": "Prove that repeated application and reversal of moves does not corrupt state.",
+    "acceptance": [
+      "Random or curated legal move sequences round-trip correctly",
+      "Special moves are included in regression coverage"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S03-F05",
+    "sprint": "sprint-03",
+    "title": "Implement UCI handshake and readiness commands",
+    "category": "uci",
+    "priority": 5,
+    "depends_on": ["S03-F01"],
+    "description": "Support the basic UCI protocol needed to identify and synchronize the engine.",
+    "acceptance": [
+      "Engine responds to uci with id and uciok",
+      "Engine responds to isready with readyok",
+      "Engine supports ucinewgame"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S03-F06",
+    "sprint": "sprint-03",
+    "title": "Implement UCI position parsing for startpos and fen",
+    "category": "uci",
+    "priority": 6,
+    "depends_on": ["S03-F05", "S03-F03"],
+    "description": "Load positions and apply UCI move strings onto the board state.",
+    "acceptance": [
+      "position startpos works",
+      "position fen works",
+      "Move application from UCI strings is tested"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S03-F07",
+    "sprint": "sprint-03",
+    "title": "Implement baseline evaluation",
+    "category": "search",
+    "priority": 7,
+    "depends_on": ["S03-F03"],
+    "description": "Score positions using material and simple piece-square terms.",
+    "acceptance": [
+      "Material imbalances affect evaluation as expected",
+      "Piece-square terms are applied consistently"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S03-F08",
+    "sprint": "sprint-03",
+    "title": "Implement negamax and alpha-beta search",
+    "category": "search",
+    "priority": 8,
+    "depends_on": ["S03-F03", "S03-F07"],
+    "description": "Search legal moves to a fixed depth using a baseline depth-first algorithm.",
+    "acceptance": [
+      "Search explores legal moves only",
+      "Alpha-beta pruning is integrated",
+      "Terminal positions are scored correctly"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S03-F09",
+    "sprint": "sprint-03",
+    "title": "Implement iterative deepening and go depth N",
+    "category": "search",
+    "priority": 9,
+    "depends_on": ["S03-F08", "S03-F06"],
+    "description": "Expose depth-limited search through the UCI go command.",
+    "acceptance": [
+      "go depth N returns bestmove",
+      "Search deepens incrementally",
+      "The engine remains responsive to basic UCI usage"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S03-F10",
+    "sprint": "sprint-03",
+    "title": "Add tactical and mate regression tests for the baseline search",
+    "category": "validation",
+    "priority": 10,
+    "depends_on": ["S03-F09"],
+    "description": "Validate that the search can find obvious forcing moves and legal best moves.",
+    "acceptance": [
+      "Mate-in-one tests pass",
+      "Simple tactical capture preference tests pass",
+      "Bestmove output is legal in all regression positions"
+    ],
+    "passes": false
+  }
+]

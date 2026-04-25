@@ -1,0 +1,115 @@
+[
+  {
+    "id": "S04-F01",
+    "sprint": "sprint-04",
+    "title": "Implement quiescence search",
+    "category": "search",
+    "priority": 1,
+    "depends_on": [],
+    "description": "Extend leaf evaluation with capture-focused search to reduce horizon artifacts.",
+    "acceptance": [
+      "Quiescence search is called from the baseline search frontier",
+      "Basic capture sequences are resolved more stably"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S04-F02",
+    "sprint": "sprint-04",
+    "title": "Implement basic move ordering heuristics",
+    "category": "search",
+    "priority": 2,
+    "depends_on": ["S04-F01"],
+    "description": "Improve alpha-beta effectiveness by searching better candidate moves earlier.",
+    "acceptance": [
+      "Captures and obvious strong moves are prioritized",
+      "Search node count improves on benchmark positions"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S04-F03",
+    "sprint": "sprint-04",
+    "title": "Implement killer moves and history heuristic",
+    "category": "search",
+    "priority": 3,
+    "depends_on": ["S04-F02"],
+    "description": "Add lightweight heuristic state to improve move ordering in deeper searches.",
+    "acceptance": [
+      "Killer move storage is integrated safely",
+      "History scores influence ordering without breaking correctness"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S04-F04",
+    "sprint": "sprint-04",
+    "title": "Implement a transposition table",
+    "category": "search",
+    "priority": 4,
+    "depends_on": ["S04-F02"],
+    "description": "Cache previously searched positions to reduce duplicated work.",
+    "acceptance": [
+      "Table lookups and writes are integrated into search",
+      "Stored entries do not produce illegal or inconsistent behavior"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S04-F05",
+    "sprint": "sprint-04",
+    "title": "Add repetition and fifty-move draw handling",
+    "category": "rules",
+    "priority": 5,
+    "depends_on": ["S04-F04"],
+    "description": "Score repeated and rule-based draw states correctly in search.",
+    "acceptance": [
+      "Repetition detection is tested",
+      "Fifty-move rule handling is tested"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S04-F06",
+    "sprint": "sprint-04",
+    "title": "Add node counting and benchmarking support",
+    "category": "tooling",
+    "priority": 6,
+    "depends_on": ["S04-F02"],
+    "description": "Measure search performance and compare changes across checkpoints.",
+    "acceptance": [
+      "Engine reports node counts or benchmark output",
+      "A repeatable benchmark command is documented"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S04-F07",
+    "sprint": "sprint-04",
+    "title": "Add search regression suite and no-regression gates",
+    "category": "validation",
+    "priority": 7,
+    "depends_on": ["S04-F01", "S04-F04", "S04-F05"],
+    "description": "Ensure strength work does not silently break legality or tactical correctness.",
+    "acceptance": [
+      "Tactical regression positions are automated",
+      "Perft suite reruns remain part of verification",
+      "Search regressions are detectable through one command"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S04-F08",
+    "sprint": "sprint-04",
+    "title": "Add basic time management for UCI go commands",
+    "category": "uci",
+    "priority": 8,
+    "depends_on": ["S04-F07"],
+    "description": "Handle simple search budgeting so the engine is less awkward in GUIs.",
+    "acceptance": [
+      "go movetime works or an equivalent simple time control is supported",
+      "Engine stops predictably within the requested budget"
+    ],
+    "passes": false
+  }
+]

@@ -1,0 +1,150 @@
+[
+  {
+    "id": "S01-F01",
+    "sprint": "sprint-01",
+    "title": "Choose the implementation language and initialize the project",
+    "category": "bootstrap",
+    "priority": 1,
+    "depends_on": [],
+    "description": "Create the first buildable thinmint project in a systems language suitable for bitboards and search.",
+    "acceptance": [
+      "Repository has a build file and lockfile if the language uses one",
+      "A single documented build command succeeds",
+      "A main executable entrypoint exists"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S01-F02",
+    "sprint": "sprint-01",
+    "title": "Create the repository layout for engine modules and tests",
+    "category": "bootstrap",
+    "priority": 2,
+    "depends_on": ["S01-F01"],
+    "description": "Add the source, test, and script directories so later work lands in stable places.",
+    "acceptance": [
+      "Source directories exist for board, move generation, search, and UCI",
+      "Test directories exist for unit and perft coverage",
+      "Scripts directory exists for verification helpers"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S01-F03",
+    "sprint": "sprint-01",
+    "title": "Add a single-command verification script",
+    "category": "tooling",
+    "priority": 3,
+    "depends_on": ["S01-F01"],
+    "description": "Provide one script that the loop can run for validation on every iteration.",
+    "acceptance": [
+      "scripts/verify.sh exists",
+      "The script runs tests",
+      "The script exits non-zero when validation fails"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S01-F04",
+    "sprint": "sprint-01",
+    "title": "Add a baseline unit test harness and smoke test",
+    "category": "testing",
+    "priority": 4,
+    "depends_on": ["S01-F01", "S01-F03"],
+    "description": "Create the first passing tests so the loop always has a regression signal.",
+    "acceptance": [
+      "At least one unit test passes",
+      "At least one binary or CLI smoke test exists",
+      "Tests run through scripts/verify.sh"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S01-F05",
+    "sprint": "sprint-01",
+    "title": "Define square indexing and coordinate conversion",
+    "category": "core",
+    "priority": 5,
+    "depends_on": ["S01-F02"],
+    "description": "Establish a single square numbering scheme and helpers for algebraic conversion.",
+    "acceptance": [
+      "All 64 squares map deterministically to bit positions",
+      "String conversion helpers are covered by tests"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S01-F06",
+    "sprint": "sprint-01",
+    "title": "Define color, piece, and castling-rights representations",
+    "category": "core",
+    "priority": 6,
+    "depends_on": ["S01-F05"],
+    "description": "Add the enums and constants used by board state and move generation.",
+    "acceptance": [
+      "Piece and color values are explicit and test-covered",
+      "Castling rights can represent all legal combinations"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S01-F07",
+    "sprint": "sprint-01",
+    "title": "Implement bitboard helper primitives",
+    "category": "core",
+    "priority": 7,
+    "depends_on": ["S01-F05"],
+    "description": "Add low-level bitboard operations used throughout the engine.",
+    "acceptance": [
+      "Helpers exist for set, clear, test, popcount, and least-significant-bit scan",
+      "Helpers are unit tested"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S01-F08",
+    "sprint": "sprint-01",
+    "title": "Define compact move encoding with flags",
+    "category": "core",
+    "priority": 8,
+    "depends_on": ["S01-F05", "S01-F06"],
+    "description": "Create a compact move format that supports promotions, captures, castling, and en passant.",
+    "acceptance": [
+      "Encoding stores from square, to square, and move flags",
+      "Promotion piece type is represented",
+      "Encoding helpers are unit tested"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S01-F09",
+    "sprint": "sprint-01",
+    "title": "Define board state using piece and occupancy bitboards",
+    "category": "board",
+    "priority": 9,
+    "depends_on": ["S01-F06", "S01-F07"],
+    "description": "Represent every field needed for a legal chess position.",
+    "acceptance": [
+      "Board state stores piece bitboards by color and piece type",
+      "Board state stores white, black, and combined occupancy",
+      "Board state stores side to move, castling rights, en passant square, and clocks"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S01-F10",
+    "sprint": "sprint-01",
+    "title": "Implement FEN parsing and board invariant checks",
+    "category": "board",
+    "priority": 10,
+    "depends_on": ["S01-F09"],
+    "description": "Load standard FEN strings into the board representation and reject invalid positions.",
+    "acceptance": [
+      "Starting position parses correctly",
+      "Castling, side-to-move, en passant, and clocks parse correctly",
+      "Malformed FEN input is rejected",
+      "Basic board invariants are validated in tests"
+    ],
+    "passes": false
+  }
+]
