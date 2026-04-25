@@ -32,7 +32,7 @@ Reason selected: required bootstrap before autonomous coding can run safely
 Files changed: OPENCODE.md, ENGINE_PLAN.md, CHECKPOINTS.md, LOGGING.md, PROGRESS.md, SPRINT.json, SPRINT.01.bootstrap-core.json, SPRINT.02.legal-movegen.json, SPRINT.03.uci-search.json, SPRINT.04.strength-stability.json, scripts/opencode-loop.sh
 Tests run: not applicable
 Perft status: not applicable
-Git checkpoint: pending
+Git checkpoint: 0a1b9a3 checkpoint(meta): initialize thinmint planning docs
 Result: success
 Known risks:
 - no engine code or verification script exists yet
