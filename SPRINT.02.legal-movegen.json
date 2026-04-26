@@ -11,7 +11,7 @@
       "White and black pawn attack masks are correct",
       "Edge-file behavior is covered by tests"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S02-F02",
