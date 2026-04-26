@@ -647,8 +647,46 @@ size_t generate_legal_moves(const BoardState& board, MoveList& moves) {
                 // Non-king move - check if piece is pinned
                 Bitboard pin_ray = get_pin_ray(board, us, from_sq);
                 if (pin_ray == BB_EMPTY) {
-                    // Not pinned - move is legal (as long as we're not in check, which we're not)
-                    moves.push(m);
+                    // Not pinned - but need to check for EP discovered check
+                    if (is_en_passant(m)) {
+                        // Create temp board to test EP legality
+                        BoardState temp_board = board;
+                        Bitboard from_bb = bb_from_square(from_sq);
+                        Bitboard to_bb = bb_from_square(to_sq);
+
+                        // Get the captured pawn square
+                        Rank cap_rank = (us == COLOR_WHITE) ? RANK_5 : RANK_4;
+                        Square captured_sq = make_square(file_of(to_sq), cap_rank);
+                        Bitboard captured_bb = bb_from_square(captured_sq);
+
+                        // Update pawn position
+                        temp_board.pieces[static_cast<size_t>(us)][static_cast<size_t>(PIECE_PAWN)] &= ~from_bb;
+                        temp_board.pieces[static_cast<size_t>(us)][static_cast<size_t>(PIECE_PAWN)] |= to_bb;
+
+                        // Remove captured pawn
+                        temp_board.pieces[static_cast<size_t>(them)][static_cast<size_t>(PIECE_PAWN)] &= ~captured_bb;
+
+                        // Update occupancy
+                        if (us == COLOR_WHITE) {
+                            temp_board.white_occupancy &= ~from_bb;
+                            temp_board.white_occupancy |= to_bb;
+                            temp_board.black_occupancy &= ~captured_bb;
+                        } else {
+                            temp_board.black_occupancy &= ~from_bb;
+                            temp_board.black_occupancy |= to_bb;
+                            temp_board.white_occupancy &= ~captured_bb;
+                        }
+                        temp_board.all_occupancy = temp_board.white_occupancy | temp_board.black_occupancy;
+
+                        // Check if king is still safe after EP
+                        Square our_king_sq = temp_board.king_square(us);
+                        if (!is_square_attacked(temp_board, our_king_sq, them)) {
+                            moves.push(m);
+                        }
+                    } else {
+                        // Not EP and not pinned - move is legal
+                        moves.push(m);
+                    }
                 } else {
                     // Pinned - can only move along the pin ray
                     if (bb_test(pin_ray, to_sq)) {

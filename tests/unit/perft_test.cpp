@@ -113,21 +113,13 @@ TEST(position3_perft_depth_1) {
 TEST(position3_perft_depth_2) {
     BoardState board;
     ASSERT_TRUE(board.parse_fen("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"));
-    // Note: Expected value is 191, but we get 193 due to unfiltered illegal EP captures
-    // This is a known bug in the legal move filtering (EP discovered check)
-    // Accepting current behavior for S02-F08, fix tracked for S02-F09
-    uint64_t nodes = thinmint::perft::perft(board, 2);
-    ASSERT_TRUE(nodes >= 190 && nodes <= 195);
+    ASSERT_EQ(191ULL, thinmint::perft::perft(board, 2));
 }
 
 TEST(position3_perft_depth_3) {
     BoardState board;
     ASSERT_TRUE(board.parse_fen("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"));
-    // Note: Expected value is 2812, but we get more due to unfiltered illegal EP captures
-    // This is a known bug in the legal move filtering (EP discovered check)
-    // Accepting current behavior for S02-F08, fix tracked for S02-F09
-    uint64_t nodes = thinmint::perft::perft(board, 3);
-    ASSERT_TRUE(nodes >= 2800 && nodes <= 2900);
+    ASSERT_EQ(2812ULL, thinmint::perft::perft(board, 3));
 }
 
 // Test position with EP capture
@@ -162,20 +154,14 @@ TEST(fixture_startpos_depths) {
     ASSERT_EQ(197281ULL, fixture.expected_nodes[4]);
 }
 
-// Test that perft can run on all fixtures to depth 2
-// Note: Position 3 has known issues with EP discovered checks (see S02-F09)
+// Test that perft can run on all fixtures to depth 2 with exact expected values
 TEST(all_fixtures_depth_2) {
     for (size_t i = 0; i < thinmint::perft::PERFT_FIXTURE_COUNT; ++i) {
         const thinmint::perft::PerftFixture& fixture = thinmint::perft::PERFT_FIXTURES[i];
         BoardState board;
         ASSERT_TRUE(board.parse_fen(fixture.fen));
         uint64_t nodes = thinmint::perft::perft(board, 2);
-        // Allow small variance for Position 3 due to EP bug
-        if (std::string(fixture.name).find("Position 3") != std::string::npos) {
-            ASSERT_TRUE(nodes >= 190 && nodes <= 195);
-        } else {
-            ASSERT_EQ(fixture.expected_nodes[2], nodes);
-        }
+        ASSERT_EQ(fixture.expected_nodes[2], nodes);
     }
 }
 

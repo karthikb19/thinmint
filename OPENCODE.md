@@ -31,6 +31,7 @@ Build a correct, deterministic chess engine with:
 - If you touch move generation, legality, make/unmake, castling, en passant, promotion, check detection, or FEN parsing, you must run perft tests.
 - Do not mark a feature as complete unless all relevant tests pass.
 - Do not skip failing tests by deleting, weakening, or commenting them out.
+- Perft validation must use exact expected node counts for canonical fixtures; do not use tolerance ranges (for example `190..195`) or minimum-only checks (for example `>=`).
 - Do not introduce external dependencies unless necessary and justified in `PROGRESS.md`.
 - Keep the engine deterministic.
 - If you are unsure about chess correctness, stop optimizing and add validation first.
@@ -111,6 +112,7 @@ Work one feature at a time.
 
 Never silently skip tests.
 Never mark incomplete or failing work as done.
+Perft fixture assertions must be exact equality checks; do not weaken them to ranges or lower bounds.
 Prefer correctness over speed.
 ```
 

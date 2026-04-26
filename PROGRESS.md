@@ -2,6 +2,42 @@
 
 Append one entry per iteration.
 
+## 2026-04-26 21:20
+Sprint: sprint-02
+Feature: S02-F10
+Title: Pass targeted perft positions for special rules
+Reason selected: highest-priority incomplete item with satisfied dependencies (S02-F09 complete)
+Files changed: no code changes (S02-F09 fix already covered this)
+Tests run: ./scripts/verify.sh (15/15 tests passed)
+Perft status: all 6 fixtures pass at depth 2 with exact expected counts
+- Position 4 (discovered check): 264 nodes
+- Position 5 (complex): 1486 nodes
+- Position 6 (edge cases): 2079 nodes
+Git checkpoint: same as S02-F09 (935c38e)
+Result: success
+Known risks:
+- S02-F09 bug fix already enabled Position 4, 5, 6 to pass
+- All fixtures use exact equality checks (no tolerance ranges)
+- Sprint 02 now complete - ready for Sprint 03
+Next suggested feature: Sprint 03 begins - Make/Unmake and UCI support
+
+## 2026-04-26 21:15
+Sprint: sprint-02
+Feature: S02-F09
+Title: Pass start position and Kiwipete perft gates
+Reason selected: highest-priority incomplete item with satisfied dependencies (S02-F08 complete)
+Files changed: src/movegen/movegen.cpp
+Tests run: ./scripts/verify.sh (15/15 tests passed)
+Perft status: all fixtures pass at depths 0-4 (start position), 0-3 (Kiwipete), 0-3 (Position 3)
+Git checkpoint: 935c38e checkpoint(sprint-02): pass start position and Kiwipete perft gates
+Result: success
+Known risks:
+- Fixed EP discovered check bug: when not in check, EP captures could still expose king to discovered check
+- Position 3 had failing perft at depth 2 (193 vs expected 191) - now fixed
+- EP discovered check validation now applies in both check and non-check cases
+- All perft fixtures now pass with exact expected node counts
+Next suggested feature: S02-F10 - Pass targeted perft positions for special rules
+
 ## 2026-04-26 20:00
 Sprint: sprint-02
 Feature: S02-F08

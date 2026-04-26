@@ -123,8 +123,9 @@
     "depends_on": ["S02-F08"],
     "description": "Use the perft harness to prove foundational move legality on standard regression positions.",
     "acceptance": [
-      "Starting position perft matches expected counts for target depths",
-      "Kiwipete perft matches expected counts for target depths"
+      "Starting position perft matches expected counts for target depths exactly",
+      "Kiwipete perft matches expected counts for target depths exactly",
+      "Perft gates use exact equality checks; range-based assertions are not allowed"
     ],
     "passes": false
   },
@@ -138,7 +139,8 @@
     "description": "Validate tricky positions covering castling, promotions, checks, pins, and en passant.",
     "acceptance": [
       "Targeted fixtures for special rules are present",
-      "Each targeted perft fixture passes"
+      "Each targeted perft fixture passes with exact expected node counts",
+      "No targeted fixture may pass via tolerance windows or minimum-only assertions"
     ],
     "passes": false
   }
