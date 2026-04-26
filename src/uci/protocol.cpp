@@ -3,6 +3,8 @@
 #include <sstream>
 
 #include "thinmint/core/version.h"
+#include "thinmint/board/makemove.h"
+#include "thinmint/movegen/movegen.h"
 
 namespace thinmint::uci {
 
@@ -11,6 +13,8 @@ Protocol::Protocol()
       ready_(true),
       best_move_callback_(nullptr),
       info_callback_(nullptr) {
+  // Initialize board to start position
+  board_.reset_to_start_position();
 }
 
 bool Protocol::ProcessCommand(const std::string& line, std::ostream& out) {
@@ -30,6 +34,8 @@ bool Protocol::ProcessCommand(const std::string& line, std::ostream& out) {
     HandleUciNewGame();
   } else if (command == "quit") {
     HandleQuit();
+  } else if (command == "position") {
+    HandlePosition(iss);
   } else if (command == "debug") {
     // Debug mode - acknowledged but no-op for now
   } else if (command == "setoption") {
@@ -85,6 +91,127 @@ void Protocol::HandleUciNewGame() {
 
 void Protocol::HandleQuit() {
   quit_received_ = true;
+}
+
+void Protocol::HandlePosition(std::istringstream& iss) {
+  std::string token;
+  iss >> token;
+
+  if (token == "startpos") {
+    // Reset to start position
+    board_.reset_to_start_position();
+  } else if (token == "fen") {
+    // Read the FEN string (6 fields)
+    std::string fen_parts[6];
+    bool fen_complete = true;
+
+    for (int i = 0; i < 6; ++i) {
+      if (!(iss >> fen_parts[i])) {
+        fen_complete = false;
+        break;
+      }
+    }
+
+    if (!fen_complete) {
+      // Invalid FEN - keep current position
+      return;
+    }
+
+    // Reconstruct FEN string
+    std::string fen = fen_parts[0] + " " + fen_parts[1] + " " +
+                      fen_parts[2] + " " + fen_parts[3] + " " +
+                      fen_parts[4] + " " + fen_parts[5];
+
+    // Parse the FEN
+    if (!board_.parse_fen(fen)) {
+      // Invalid FEN - keep current position
+      return;
+    }
+  } else {
+    // Invalid position command - ignore
+    return;
+  }
+
+  // Check for "moves" keyword followed by move list
+  iss >> token;
+  if (token == "moves") {
+    // Apply each move in sequence
+    std::string uci_move;
+    while (iss >> uci_move) {
+      if (!ApplyUciMove(uci_move)) {
+        // Failed to apply move - stop processing
+        break;
+      }
+    }
+  }
+}
+
+bool Protocol::ApplyUciMove(const std::string& uci_move) {
+  // Find the legal move matching the UCI string
+  thinmint::core::Move move = FindLegalMove(uci_move);
+
+  if (move == thinmint::core::MOVE_NONE) {
+    return false;
+  }
+
+  // Apply the move to the board
+  make_move(board_, move);
+  return true;
+}
+
+thinmint::core::Move Protocol::FindLegalMove(const std::string& uci_move) const {
+  // Parse UCI string
+  if (uci_move.length() < 4 || uci_move.length() > 5) {
+    return thinmint::core::MOVE_NONE;
+  }
+
+  // Parse from and to squares
+  std::string from_str = uci_move.substr(0, 2);
+  std::string to_str = uci_move.substr(2, 2);
+
+  thinmint::core::Square from = thinmint::core::algebraic_to_square(from_str);
+  thinmint::core::Square to = thinmint::core::algebraic_to_square(to_str);
+
+  if (from == thinmint::core::SQUARE_NONE || to == thinmint::core::SQUARE_NONE) {
+    return thinmint::core::MOVE_NONE;
+  }
+
+  // Parse promotion piece if present
+  thinmint::core::PieceType promotion = thinmint::core::PIECE_NONE;
+  if (uci_move.length() == 5) {
+    char promo_char = uci_move[4];
+    switch (promo_char) {
+      case 'q': case 'Q': promotion = thinmint::core::PIECE_QUEEN; break;
+      case 'r': case 'R': promotion = thinmint::core::PIECE_ROOK; break;
+      case 'b': case 'B': promotion = thinmint::core::PIECE_BISHOP; break;
+      case 'n': case 'N': promotion = thinmint::core::PIECE_KNIGHT; break;
+      default: return thinmint::core::MOVE_NONE;
+    }
+  }
+
+  // Generate legal moves and find the matching one
+  thinmint::movegen::MoveList legal_moves;
+  thinmint::movegen::generate_legal_moves(board_, legal_moves);
+
+  for (size_t i = 0; i < legal_moves.size(); ++i) {
+    thinmint::core::Move move = legal_moves[i];
+
+    if (thinmint::core::from_square(move) != from) continue;
+    if (thinmint::core::to_square(move) != to) continue;
+
+    if (promotion != thinmint::core::PIECE_NONE) {
+      // Must be a promotion with matching piece type
+      if (!thinmint::core::is_promotion(move)) continue;
+      if (thinmint::core::promotion_type(move) != promotion) continue;
+    } else {
+      // Must not be a promotion
+      if (thinmint::core::is_promotion(move)) continue;
+    }
+
+    return move;
+  }
+
+  return thinmint::core::MOVE_NONE;
 }
 
 }  // namespace thinmint::uci

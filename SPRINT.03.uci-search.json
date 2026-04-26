@@ -85,7 +85,7 @@
       "position fen works",
       "Move application from UCI strings is tested"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S03-F07",

@@ -194,4 +194,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_uci_protocol_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_uci_protocol_test COMMAND thinmint_uci_protocol_test)
+
+  add_executable(thinmint_uci_position_test
+    tests/unit/uci_position_test.cpp
+  )
+
+  target_link_libraries(thinmint_uci_position_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_uci_position_test COMMAND thinmint_uci_position_test)
 endif()
