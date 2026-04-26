@@ -177,4 +177,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_unmakemove_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_unmakemove_test COMMAND thinmint_unmakemove_test)
+
+  add_executable(thinmint_make_unmake_stress_test
+    tests/unit/make_unmake_stress_test.cpp
+  )
+
+  target_link_libraries(thinmint_make_unmake_stress_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_make_unmake_stress_test COMMAND thinmint_make_unmake_stress_test)
 endif()

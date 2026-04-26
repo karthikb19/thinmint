@@ -55,7 +55,7 @@
       "Random or curated legal move sequences round-trip correctly",
       "Special moves are included in regression coverage"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S03-F05",
