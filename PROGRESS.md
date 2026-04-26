@@ -2,6 +2,23 @@
 
 Append one entry per iteration.
 
+## 2026-04-26 12:45
+Sprint: sprint-02
+Feature: S02-F03
+Title: Implement bishop, rook, and queen sliding attacks
+Reason selected: highest-priority incomplete item with satisfied dependencies (S02-F02 complete)
+Files changed: include/thinmint/movegen/attacks.h, src/movegen/attacks.cpp, tests/unit/sliding_attacks_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (10/10 tests passed)
+Perft status: not applicable (attack generation, not full move generation yet)
+Git checkpoint: pending
+Result: success
+Known risks:
+- Sliding attacks use on-the-fly ray traversal; not optimized with magic bitboards yet
+- Attack generation includes the blocker square (correct for captures) but caller must handle move legality
+- Queen attacks are inline and combine bishop+rook - this is correct but duplicates work if both are needed separately
+- No precomputed lookup tables for sliding pieces (unlike knight/king) due to occupancy dependence
+Next suggested feature: S02-F04 - Implement pseudo-legal move generation for all piece types
+
 ## Entry Template
 
 ```text
@@ -28,7 +45,7 @@ Reason selected: highest-priority incomplete item with satisfied dependencies (n
 Files changed: include/thinmint/movegen/attacks.h, src/movegen/attacks.cpp, tests/unit/knight_king_attacks_test.cpp, CMakeLists.txt
 Tests run: ./scripts/verify.sh (9/9 tests passed)
 Perft status: not applicable (attack generation, not move generation yet)
-Git checkpoint: pending
+Git checkpoint: 9a80598 checkpoint(sprint-02): implement knight and king attack generation
 Result: success
 Known risks:
 - Knight and king attack tables use direct index arithmetic which could be error-prone on edge cases

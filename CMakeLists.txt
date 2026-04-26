@@ -109,4 +109,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_knight_king_attacks_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_knight_king_attacks_test COMMAND thinmint_knight_king_attacks_test)
+
+  add_executable(thinmint_sliding_attacks_test
+    tests/unit/sliding_attacks_test.cpp
+  )
+
+  target_link_libraries(thinmint_sliding_attacks_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_sliding_attacks_test COMMAND thinmint_sliding_attacks_test)
 endif()

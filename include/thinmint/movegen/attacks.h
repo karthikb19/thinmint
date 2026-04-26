@@ -62,6 +62,23 @@ thinmint::core::Bitboard pawn_captures(thinmint::core::Bitboard pawns, thinmint:
 // Get pawn promotion capture destinations (captures from 7th rank)
 thinmint::core::Bitboard pawn_promotion_captures(thinmint::core::Bitboard pawns, thinmint::core::Bitboard enemy_pieces, thinmint::core::Color c);
 
+// Sliding piece attack generation
+// These are computed on-the-fly based on occupancy (blockers)
+
+// Get bishop attacks from a square given the board occupancy
+// Bishop moves diagonally; attacks stop at blockers
+thinmint::core::Bitboard bishop_attacks(thinmint::core::Square sq, thinmint::core::Bitboard occupancy);
+
+// Get rook attacks from a square given the board occupancy
+// Rook moves orthogonally; attacks stop at blockers
+thinmint::core::Bitboard rook_attacks(thinmint::core::Square sq, thinmint::core::Bitboard occupancy);
+
+// Get queen attacks from a square given the board occupancy
+// Queen combines bishop and rook attacks
+inline thinmint::core::Bitboard queen_attacks(thinmint::core::Square sq, thinmint::core::Bitboard occupancy) {
+    return bishop_attacks(sq, occupancy) | rook_attacks(sq, occupancy);
+}
+
 // Get en passant target square from a double push destination
 // Returns SQUARE_NONE if not a valid double push destination
 inline thinmint::core::Square ep_square_from_double_push(thinmint::core::Square to_sq, thinmint::core::Color c) {

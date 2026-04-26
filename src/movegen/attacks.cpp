@@ -179,49 +179,134 @@ void init_king_attacks() {
     for (Square sq = 0; sq < 64; ++sq) {
         Bitboard bb = bb_from_square(sq);
         Bitboard attacks = BB_EMPTY;
-        
+
         // North (+8): valid if not on 8th rank
         if ((sq / 8) < 7) {
             attacks |= bb << 8;
         }
-        
+
         // Northeast (+9): valid if not on H-file and not on 8th rank
         if ((sq % 8) < 7 && (sq / 8) < 7) {
             attacks |= bb << 9;
         }
-        
+
         // East (+1): valid if not on H-file
         if ((sq % 8) < 7) {
             attacks |= bb << 1;
         }
-        
+
         // Southeast (-7): valid if not on H-file and not on 1st rank
         if ((sq % 8) < 7 && (sq / 8) > 0) {
             attacks |= bb >> 7;
         }
-        
+
         // South (-8): valid if not on 1st rank
         if ((sq / 8) > 0) {
             attacks |= bb >> 8;
         }
-        
+
         // Southwest (-9): valid if not on A-file and not on 1st rank
         if ((sq % 8) > 0 && (sq / 8) > 0) {
             attacks |= bb >> 9;
         }
-        
+
         // West (-1): valid if not on A-file
         if ((sq % 8) > 0) {
             attacks |= bb >> 1;
         }
-        
+
         // Northwest (+7): valid if not on A-file and not on 8th rank
         if ((sq % 8) > 0 && (sq / 8) < 7) {
             attacks |= bb << 7;
         }
-        
+
         KING_ATTACKS[sq] = attacks;
     }
+}
+
+// Bishop attacks - computed on-the-fly with occupancy
+// Bishop moves diagonally in 4 directions
+Bitboard bishop_attacks(Square sq, Bitboard occupancy) {
+    Bitboard attacks = BB_EMPTY;
+    int file = sq % 8;
+    int rank = sq / 8;
+
+    // Northeast direction: +9 (file+1, rank+1)
+    for (int f = file + 1, r = rank + 1; f <= 7 && r <= 7; ++f, ++r) {
+        Square target = static_cast<Square>(r * 8 + f);
+        Bitboard target_bb = bb_from_square(target);
+        attacks |= target_bb;
+        // Stop if we hit a blocker
+        if (target_bb & occupancy) break;
+    }
+
+    // Northwest direction: +7 (file-1, rank+1)
+    for (int f = file - 1, r = rank + 1; f >= 0 && r <= 7; --f, ++r) {
+        Square target = static_cast<Square>(r * 8 + f);
+        Bitboard target_bb = bb_from_square(target);
+        attacks |= target_bb;
+        if (target_bb & occupancy) break;
+    }
+
+    // Southeast direction: -7 (file+1, rank-1)
+    for (int f = file + 1, r = rank - 1; f <= 7 && r >= 0; ++f, --r) {
+        Square target = static_cast<Square>(r * 8 + f);
+        Bitboard target_bb = bb_from_square(target);
+        attacks |= target_bb;
+        if (target_bb & occupancy) break;
+    }
+
+    // Southwest direction: -9 (file-1, rank-1)
+    for (int f = file - 1, r = rank - 1; f >= 0 && r >= 0; --f, --r) {
+        Square target = static_cast<Square>(r * 8 + f);
+        Bitboard target_bb = bb_from_square(target);
+        attacks |= target_bb;
+        if (target_bb & occupancy) break;
+    }
+
+    return attacks;
+}
+
+// Rook attacks - computed on-the-fly with occupancy
+// Rook moves orthogonally in 4 directions
+Bitboard rook_attacks(Square sq, Bitboard occupancy) {
+    Bitboard attacks = BB_EMPTY;
+    int file = sq % 8;
+    int rank = sq / 8;
+
+    // North direction: +8 (file same, rank+1)
+    for (int r = rank + 1; r <= 7; ++r) {
+        Square target = static_cast<Square>(r * 8 + file);
+        Bitboard target_bb = bb_from_square(target);
+        attacks |= target_bb;
+        if (target_bb & occupancy) break;
+    }
+
+    // South direction: -8 (file same, rank-1)
+    for (int r = rank - 1; r >= 0; --r) {
+        Square target = static_cast<Square>(r * 8 + file);
+        Bitboard target_bb = bb_from_square(target);
+        attacks |= target_bb;
+        if (target_bb & occupancy) break;
+    }
+
+    // East direction: +1 (file+1, rank same)
+    for (int f = file + 1; f <= 7; ++f) {
+        Square target = static_cast<Square>(rank * 8 + f);
+        Bitboard target_bb = bb_from_square(target);
+        attacks |= target_bb;
+        if (target_bb & occupancy) break;
+    }
+
+    // West direction: -1 (file-1, rank same)
+    for (int f = file - 1; f >= 0; --f) {
+        Square target = static_cast<Square>(rank * 8 + f);
+        Bitboard target_bb = bb_from_square(target);
+        attacks |= target_bb;
+        if (target_bb & occupancy) break;
+    }
+
+    return attacks;
 }
 
 }  // namespace thinmint::movegen

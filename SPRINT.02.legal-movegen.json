@@ -39,7 +39,7 @@
       "Sliding attacks stop at blockers correctly",
       "Tests cover blockers, captures, and empty rays"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S02-F04",
