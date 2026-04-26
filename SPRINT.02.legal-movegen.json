@@ -54,7 +54,7 @@
       "Captures and quiet moves are both included",
       "Promotion moves are generated correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S02-F05",

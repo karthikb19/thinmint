@@ -16,6 +16,7 @@ add_library(thinmint_core
   src/core/move.cpp
   src/board/board.cpp
   src/movegen/attacks.cpp
+  src/movegen/movegen.cpp
 )
 
 target_include_directories(thinmint_core
@@ -117,4 +118,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_sliding_attacks_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_sliding_attacks_test COMMAND thinmint_sliding_attacks_test)
+
+  add_executable(thinmint_pseudolegal_movegen_test
+    tests/unit/pseudolegal_movegen_test.cpp
+  )
+
+  target_link_libraries(thinmint_pseudolegal_movegen_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_pseudolegal_movegen_test COMMAND thinmint_pseudolegal_movegen_test)
 endif()

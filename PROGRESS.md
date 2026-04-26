@@ -2,6 +2,26 @@
 
 Append one entry per iteration.
 
+## 2026-04-26 15:30
+Sprint: sprint-02
+Feature: S02-F04
+Title: Implement pseudo-legal move generation for all piece types
+Reason selected: highest-priority incomplete item with satisfied dependencies (S02-F01, F02, F03 all complete)
+Files changed: include/thinmint/movegen/movegen.h, src/movegen/movegen.cpp, tests/unit/pseudolegal_movegen_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (11/11 tests passed)
+Perft status: not applicable (pseudo-legal generation, not full legal move generation yet)
+Git checkpoint: pending
+Result: success
+Known risks:
+- Pseudo-legal generation includes king captures (correct for pseudo-legal, filtered later in legal move generation)
+- En passant capture generation validates pawn presence at EP square (may need optimization)
+- Castling moves are not yet included (deferred to S02-F06)
+- Move list uses fixed-size array (256 moves max), sufficient for all legal chess positions
+- No move ordering or special move scoring yet
+Next suggested feature: S02-F05 - Implement king-in-check detection
+
+## Entry Template
+
 ## 2026-04-26 12:45
 Sprint: sprint-02
 Feature: S02-F03
