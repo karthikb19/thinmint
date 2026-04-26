@@ -15,6 +15,7 @@ add_library(thinmint_core
   src/core/bitboard.cpp
   src/core/move.cpp
   src/board/board.cpp
+  src/movegen/attacks.cpp
 )
 
 target_include_directories(thinmint_core
@@ -92,4 +93,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_fen_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_fen_test COMMAND thinmint_fen_test)
+
+  add_executable(thinmint_pawn_attacks_test
+    tests/unit/pawn_attacks_test.cpp
+  )
+
+  target_link_libraries(thinmint_pawn_attacks_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_pawn_attacks_test COMMAND thinmint_pawn_attacks_test)
 endif()

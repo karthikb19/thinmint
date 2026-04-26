@@ -20,7 +20,23 @@ Notes:
 Next suggested feature: ...
 ```
 
-## Initial Note
+## 2026-04-25 17:15
+Sprint: sprint-02
+Feature: S02-F01
+Title: Implement pawn attack masks and movement helpers
+Reason selected: highest-priority incomplete item with satisfied dependencies (no dependencies required)
+Files changed: include/thinmint/movegen/attacks.h, src/movegen/attacks.cpp, tests/unit/pawn_attacks_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (8/8 tests passed)
+Perft status: not applicable (attack generation, not move generation yet)
+Git checkpoint: pending
+Result: success
+Known risks:
+- Pawn attack tables use 128 entries ([color][square]) - could optimize to single table with color as offset
+- All pawn functions assume valid pawn positions - validation happens at higher level
+- EP square helper uses simple rank check, doesn't validate actual double push legality
+Next suggested feature: S02-F02 - Implement knight and king attack generation
+
+
 
 This file is part of the control loop. Keep it compact and factual.
 

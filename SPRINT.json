@@ -1,150 +1,145 @@
 [
   {
-    "id": "S01-F01",
-    "sprint": "sprint-01",
-    "title": "Initialize the C++ project and build system",
-    "category": "bootstrap",
+    "id": "S02-F01",
+    "sprint": "sprint-02",
+    "title": "Implement pawn attack masks and movement helpers",
+    "category": "movegen",
     "priority": 1,
     "depends_on": [],
-    "description": "Create the first buildable thinmint C++ project with a simple CMake-based build.",
+    "description": "Create the pawn-specific attack and movement primitives needed for generation.",
     "acceptance": [
-      "Repository has a top-level CMakeLists.txt",
-      "A single documented CMake build command succeeds",
-      "A main executable entrypoint exists"
+      "White and black pawn attack masks are correct",
+      "Edge-file behavior is covered by tests"
     ],
     "passes": true
   },
   {
-    "id": "S01-F02",
-    "sprint": "sprint-01",
-    "title": "Create the repository layout for engine modules and tests",
-    "category": "bootstrap",
+    "id": "S02-F02",
+    "sprint": "sprint-02",
+    "title": "Implement knight and king attack generation",
+    "category": "movegen",
     "priority": 2,
-    "depends_on": ["S01-F01"],
-    "description": "Add the C++ source, header, test, and script directories so later work lands in stable places.",
+    "depends_on": [],
+    "description": "Add precomputed or computed attack masks for knight and king moves.",
     "acceptance": [
-      "Source directories or module folders exist for board, move generation, search, and UCI",
-      "Test directories exist for unit and perft coverage",
-      "Scripts directory exists for verification helpers"
+      "Knight attacks are correct from center, edge, and corner squares",
+      "King attacks are correct from center, edge, and corner squares"
     ],
-    "passes": true
+    "passes": false
   },
   {
-    "id": "S01-F03",
-    "sprint": "sprint-01",
-    "title": "Add a single-command verification script",
-    "category": "tooling",
+    "id": "S02-F03",
+    "sprint": "sprint-02",
+    "title": "Implement bishop, rook, and queen sliding attacks",
+    "category": "movegen",
     "priority": 3,
-    "depends_on": ["S01-F01"],
-    "description": "Provide one script that the loop can run for validation on every iteration.",
+    "depends_on": ["S02-F02"],
+    "description": "Generate sliding attacks with occupancy-aware ray traversal or a later-optimizable approach.",
     "acceptance": [
-      "scripts/verify.sh exists",
-      "The script runs tests",
-      "The script exits non-zero when validation fails"
+      "Sliding attacks stop at blockers correctly",
+      "Tests cover blockers, captures, and empty rays"
     ],
-    "passes": true
+    "passes": false
   },
   {
-    "id": "S01-F04",
-    "sprint": "sprint-01",
-    "title": "Add a baseline unit test harness and smoke test",
-    "category": "testing",
+    "id": "S02-F04",
+    "sprint": "sprint-02",
+    "title": "Implement pseudo-legal move generation for all piece types",
+    "category": "movegen",
     "priority": 4,
-    "depends_on": ["S01-F01", "S01-F03"],
-    "description": "Create the first passing tests so the loop always has a regression signal.",
+    "depends_on": ["S02-F01", "S02-F02", "S02-F03"],
+    "description": "Generate pseudo-legal quiet and capture moves for every piece, including promotions and double pushes.",
     "acceptance": [
-      "At least one unit test passes",
-      "At least one built binary or CLI smoke test exists",
-      "Tests run through scripts/verify.sh"
+      "Move lists are generated for all piece types",
+      "Captures and quiet moves are both included",
+      "Promotion moves are generated correctly"
     ],
-    "passes": true
+    "passes": false
   },
   {
-    "id": "S01-F05",
-    "sprint": "sprint-01",
-    "title": "Define square indexing and coordinate conversion",
-    "category": "core",
+    "id": "S02-F05",
+    "sprint": "sprint-02",
+    "title": "Implement king-in-check detection",
+    "category": "legality",
     "priority": 5,
-    "depends_on": ["S01-F02"],
-    "description": "Establish a single square numbering scheme and helpers for algebraic conversion.",
+    "depends_on": ["S02-F01", "S02-F02", "S02-F03"],
+    "description": "Detect whether a side's king is attacked in the current position.",
     "acceptance": [
-      "All 64 squares map deterministically to bit positions",
-      "String conversion helpers are covered by tests"
+      "Check detection works for all piece types",
+      "Unit tests cover direct checks and discovered checks"
     ],
-    "passes": true
+    "passes": false
   },
   {
-    "id": "S01-F06",
-    "sprint": "sprint-01",
-    "title": "Define color, piece, and castling-rights representations",
-    "category": "core",
+    "id": "S02-F06",
+    "sprint": "sprint-02",
+    "title": "Implement castling and en passant generation rules",
+    "category": "legality",
     "priority": 6,
-    "depends_on": ["S01-F05"],
-    "description": "Add the enums and constants used by board state and move generation.",
+    "depends_on": ["S02-F04", "S02-F05"],
+    "description": "Add pseudo-legal generation for castling and en passant before final legality filtering.",
     "acceptance": [
-      "Piece and color values are explicit and test-covered",
-      "Castling rights can represent all legal combinations"
+      "Castling rights are honored",
+      "Blocked or attacked castling paths are excluded when legality is checked",
+      "En passant candidates are generated only when the ep square is present"
     ],
-    "passes": true
+    "passes": false
   },
   {
-    "id": "S01-F07",
-    "sprint": "sprint-01",
-    "title": "Implement bitboard helper primitives",
-    "category": "core",
+    "id": "S02-F07",
+    "sprint": "sprint-02",
+    "title": "Implement pin handling and legal move filtering",
+    "category": "legality",
     "priority": 7,
-    "depends_on": ["S01-F05"],
-    "description": "Add low-level bitboard operations used throughout the engine.",
+    "depends_on": ["S02-F04", "S02-F05", "S02-F06"],
+    "description": "Restrict pseudo-legal moves down to fully legal moves, including pinned pieces and evasions while in check.",
     "acceptance": [
-      "Helpers exist for set, clear, test, popcount, and least-significant-bit scan",
-      "Helpers are unit tested"
+      "Pinned pieces cannot expose the king illegally",
+      "Check evasions are limited to legal responses",
+      "Legal move lists contain no king-exposing moves"
     ],
-    "passes": true
+    "passes": false
   },
   {
-    "id": "S01-F08",
-    "sprint": "sprint-01",
-    "title": "Define compact move encoding with flags",
-    "category": "core",
+    "id": "S02-F08",
+    "sprint": "sprint-02",
+    "title": "Add perft runner and baseline perft fixtures",
+    "category": "validation",
     "priority": 8,
-    "depends_on": ["S01-F05", "S01-F06"],
-    "description": "Create a compact move format that supports promotions, captures, castling, and en passant.",
+    "depends_on": ["S02-F07"],
+    "description": "Create a perft tool or test harness for validating move generation.",
     "acceptance": [
-      "Encoding stores from square, to square, and move flags",
-      "Promotion piece type is represented",
-      "Encoding helpers are unit tested"
+      "Perft can run on an arbitrary FEN and depth",
+      "Fixture-based perft tests exist"
     ],
-    "passes": true
+    "passes": false
   },
   {
-    "id": "S01-F09",
-    "sprint": "sprint-01",
-    "title": "Define board state using piece and occupancy bitboards",
-    "category": "board",
+    "id": "S02-F09",
+    "sprint": "sprint-02",
+    "title": "Pass start position and Kiwipete perft gates",
+    "category": "validation",
     "priority": 9,
-    "depends_on": ["S01-F06", "S01-F07"],
-    "description": "Represent every field needed for a legal chess position.",
+    "depends_on": ["S02-F08"],
+    "description": "Use the perft harness to prove foundational move legality on standard regression positions.",
     "acceptance": [
-      "Board state stores piece bitboards by color and piece type using fixed-width integer types",
-      "Board state stores white, black, and combined occupancy",
-      "Board state stores side to move, castling rights, en passant square, and clocks"
+      "Starting position perft matches expected counts for target depths",
+      "Kiwipete perft matches expected counts for target depths"
     ],
-    "passes": true
+    "passes": false
   },
   {
-    "id": "S01-F10",
-    "sprint": "sprint-01",
-    "title": "Implement FEN parsing and board invariant checks",
-    "category": "board",
+    "id": "S02-F10",
+    "sprint": "sprint-02",
+    "title": "Pass targeted perft positions for special rules",
+    "category": "validation",
     "priority": 10,
-    "depends_on": ["S01-F09"],
-    "description": "Load standard FEN strings into the board representation and reject invalid positions.",
+    "depends_on": ["S02-F09"],
+    "description": "Validate tricky positions covering castling, promotions, checks, pins, and en passant.",
     "acceptance": [
-      "Starting position parses correctly",
-      "Castling, side-to-move, en passant, and clocks parse correctly",
-      "Malformed FEN input is rejected",
-      "Basic board invariants are validated in tests"
+      "Targeted fixtures for special rules are present",
+      "Each targeted perft fixture passes"
     ],
-    "passes": true
+    "passes": false
   }
 ]
