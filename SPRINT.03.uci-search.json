@@ -114,7 +114,7 @@
       "Alpha-beta pruning is integrated",
       "Terminal positions are scored correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S03-F09",

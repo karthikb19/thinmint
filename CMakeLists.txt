@@ -22,6 +22,7 @@ add_library(thinmint_core
   src/perft/perft.cpp
   src/uci/protocol.cpp
   src/eval/eval.cpp
+  src/search/search.cpp
 )
 
 target_include_directories(thinmint_core
@@ -211,4 +212,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_eval_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_eval_test COMMAND thinmint_eval_test)
+
+  add_executable(thinmint_search_test
+    tests/unit/search_test.cpp
+  )
+
+  target_link_libraries(thinmint_search_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_search_test COMMAND thinmint_search_test)
 endif()
