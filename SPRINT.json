@@ -129,7 +129,7 @@
       "Board state stores white, black, and combined occupancy",
       "Board state stores side to move, castling rights, en passant square, and clocks"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S01-F10",
