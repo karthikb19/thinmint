@@ -145,6 +145,6 @@
       "Malformed FEN input is rejected",
       "Basic board invariants are validated in tests"
     ],
-    "passes": false
+    "passes": true
   }
 ]

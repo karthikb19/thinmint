@@ -1,10 +1,81 @@
 #include "thinmint/board/board.h"
 
 #include <sstream>
+#include <cctype>
 
 namespace thinmint::board {
 
 using namespace thinmint::core;
+
+namespace {
+
+// Parse the piece placement field of FEN (e.g., "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
+// Returns true on success, populates the board's piece bitboards
+bool parse_piece_placement(BoardState& board, const std::string& placement) {
+    Rank current_rank = RANK_8;  // Start from rank 8 (top of board)
+    File current_file = FILE_A;
+
+    for (size_t i = 0; i < placement.size(); ++i) {
+        char c = placement[i];
+
+        if (c == '/') {
+            // Move to next rank
+            if (current_rank == RANK_1) {
+                return false;  // Too many ranks
+            }
+            current_rank = static_cast<Rank>(current_rank - 1);
+            current_file = FILE_A;
+        } else if (c >= '1' && c <= '8') {
+            // Empty squares
+            int empty_count = c - '0';
+            for (int j = 0; j < empty_count; ++j) {
+                if (current_file > FILE_H) {
+                    return false;  // Too many files in this rank
+                }
+                ++current_file;
+            }
+        } else {
+            // Should be a piece character
+            Piece piece = char_to_piece(c);
+            if (piece == PIECE_NO_PIECE) {
+                return false;  // Invalid piece character
+            }
+
+            if (current_file > FILE_H) {
+                return false;  // Too many files in this rank
+            }
+
+            Square sq = make_square(current_file, current_rank);
+            Color color = color_of(piece);
+            PieceType pt = type_of(piece);
+
+            // Set the piece bitboard
+            board.pieces[static_cast<size_t>(color)][static_cast<size_t>(pt)] |= bb_from_square(sq);
+
+            ++current_file;
+        }
+    }
+
+    // Verify we filled all ranks
+    if (current_rank != RANK_1 || current_file != FILE_NONE) {
+        // Check if we ended on the right position
+        // After rank 1, we should have processed 8 files
+        if (!(current_rank == RANK_1 && current_file == FILE_A + 8)) {
+            return false;
+        }
+    }
+
+    // Update occupancy bitboards
+    for (size_t pt = 1; pt < PIECE_TYPE_COUNT; ++pt) {
+        board.white_occupancy |= board.pieces[0][pt];
+        board.black_occupancy |= board.pieces[1][pt];
+    }
+    board.all_occupancy = board.white_occupancy | board.black_occupancy;
+
+    return true;
+}
+
+}  // namespace
 
 BoardState::BoardState() {
     clear();
@@ -268,6 +339,100 @@ std::string BoardState::to_string() const {
     oss << "Fullmove number: " << fullmove_number << "\n";
 
     return oss.str();
+}
+
+bool BoardState::parse_fen(const std::string& fen) {
+    // Clear the board first
+    clear();
+
+    // Split FEN into fields
+    std::istringstream iss(fen);
+    std::string piece_placement, side, castling, ep_square;
+    int halfmove = 0, fullmove = 1;
+
+    // Parse fields (6 fields in standard FEN)
+    if (!(iss >> piece_placement)) {
+        return false;  // Missing piece placement
+    }
+    if (!(iss >> side)) {
+        return false;  // Missing side to move
+    }
+    if (!(iss >> castling)) {
+        return false;  // Missing castling rights
+    }
+    if (!(iss >> ep_square)) {
+        return false;  // Missing en passant square
+    }
+
+    // Halfmove and fullmove are optional in some contexts, but we require them
+    if (!(iss >> halfmove)) {
+        // Default to 0
+        halfmove = 0;
+    }
+    if (!(iss >> fullmove)) {
+        // Default to 1
+        fullmove = 1;
+    }
+
+    // Check for extra tokens (invalid FEN)
+    std::string extra;
+    if (iss >> extra) {
+        return false;
+    }
+
+    // Parse piece placement
+    if (!parse_piece_placement(*this, piece_placement)) {
+        return false;
+    }
+
+    // Parse side to move
+    if (side == "w" || side == "W") {
+        side_to_move = COLOR_WHITE;
+    } else if (side == "b" || side == "B") {
+        side_to_move = COLOR_BLACK;
+    } else {
+        return false;  // Invalid side to move
+    }
+
+    // Parse castling rights
+    castling_rights = parse_castling_rights(castling);
+
+    // Parse en passant square
+    if (ep_square == "-" || ep_square.empty()) {
+        en_passant_square = SQUARE_NONE;
+    } else {
+        en_passant_square = algebraic_to_square(ep_square);
+        if (en_passant_square == SQUARE_NONE) {
+            return false;  // Invalid EP square
+        }
+    }
+
+    // Set clocks
+    if (halfmove < 0 || halfmove > 255) {
+        return false;  // Invalid halfmove clock
+    }
+    halfmove_clock = static_cast<uint8_t>(halfmove);
+
+    if (fullmove < 1 || fullmove > 65535) {
+        return false;  // Invalid fullmove number
+    }
+    fullmove_number = static_cast<uint16_t>(fullmove);
+
+    // Validate the resulting position
+    if (!is_valid()) {
+        return false;
+    }
+
+    return true;
+}
+
+BoardState board_from_fen(const std::string& fen) {
+    BoardState board;
+    if (!board.parse_fen(fen)) {
+        // Return empty board on failure (which is an invalid position)
+        board.clear();
+    }
+    return board;
 }
 
 }  // namespace thinmint::board

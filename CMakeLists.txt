@@ -84,4 +84,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_board_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_board_test COMMAND thinmint_board_test)
+
+  add_executable(thinmint_fen_test
+    tests/unit/fen_test.cpp
+  )
+
+  target_link_libraries(thinmint_fen_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_fen_test COMMAND thinmint_fen_test)
 endif()

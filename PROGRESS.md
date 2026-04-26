@@ -151,3 +151,20 @@ Known risks:
 - King adjacency validation assumes valid squares - edge case if king bitboards are corrupted
 Next suggested feature: S01-F10 - Implement FEN parsing and board invariant checks
 
+## 2026-04-25 16:15
+Sprint: sprint-01
+Feature: S01-F10
+Title: Implement FEN parsing and board invariant checks
+Reason selected: highest-priority incomplete item with satisfied dependencies (S01-F09 complete, all prior features complete)
+Files changed: include/thinmint/board/board.h, include/thinmint/core/bitboard.h, src/board/board.cpp, tests/unit/fen_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (7/7 tests passed)
+Perft status: not applicable (no move generation yet)
+Git checkpoint: pending
+Result: success
+Known risks:
+- FEN parsing does not validate that the side to move is not in check (requires attack generation)
+- FEN parsing trusts castling rights without verifying rook positions (permissive but correct for chess960-style positions)
+- FEN parsing rejects positions with EP squares where no pawn just moved (correctly validates rank but not pawn presence)
+- FEN parser uses std::istringstream which may have locale-dependent behavior for numbers
+Next suggested feature: Sprint 01 complete - proceed to Sprint 02 attack generation and legal move correctness
+

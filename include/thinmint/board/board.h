@@ -103,7 +103,15 @@ public:
 
     // Convert board to debug string representation
     std::string to_string() const;
+
+    // Parse a FEN string and populate this board state
+    // Returns true on success, false on failure (board state is undefined on failure)
+    bool parse_fen(const std::string& fen);
 };
+
+// Parse a FEN string and return a BoardState
+// Returns empty board (which is invalid) on failure
+BoardState board_from_fen(const std::string& fen);
 
 // Standard starting position FEN
 inline constexpr const char* START_POSITION_FEN =

@@ -140,6 +140,11 @@ constexpr Bitboard bb_set(Bitboard bb, Square sq) {
     return bb | (1ULL << sq);
 }
 
+// Create a bitboard with a single square set
+constexpr Bitboard bb_from_square(Square sq) {
+    return 1ULL << sq;
+}
+
 // Clear a bit on the bitboard (returns new bitboard with bit cleared)
 constexpr Bitboard bb_clear(Bitboard bb, Square sq) {
     return bb & ~(1ULL << sq);
