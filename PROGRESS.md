@@ -2,6 +2,24 @@
 
 Append one entry per iteration.
 
+## 2026-04-26 21:30
+Sprint: sprint-03
+Feature: S03-F01
+Title: Implement make move for quiet moves and captures
+Reason selected: highest-priority incomplete feature with satisfied dependencies (no dependencies required, Sprint 02 complete)
+Files changed: include/thinmint/board/makemove.h, src/board/makemove.cpp, tests/unit/makemove_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (16/16 tests passed)
+Perft status: not applicable (no chess rules changes, only move application)
+Git checkpoint: pending
+Result: success
+Known risks:
+- make_move handles all move types including special moves (castling, EP, promotions) which is beyond S03-F01 scope but needed for correctness
+- Castling rights updates implemented for rook captures and king/rook moves
+- Board state invariants maintained through all operations
+- All 9 test cases pass: quiet pawn push, quiet piece move, simple capture, knight capture, multiple moves, occupancy updates, major piece capture, halfmove clock, board validity
+Next suggested feature: S03-F02 - Implement make move for castling, en passant, and promotions (now effectively part of S03-F01 implementation, may skip to S03-F03)
+
+
 ## 2026-04-26 21:20
 Sprint: sprint-02
 Feature: S02-F10

@@ -12,7 +12,7 @@
       "Captures remove the captured piece correctly",
       "Unit tests cover both move classes"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S03-F02",
