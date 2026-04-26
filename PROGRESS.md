@@ -2,6 +2,26 @@
 
 Append one entry per iteration.
 
+## 2026-04-26 23:00
+Sprint: sprint-03
+Feature: S03-F03
+Title: Implement unmake move with undo state
+Reason selected: highest-priority incomplete feature with satisfied dependencies (S03-F02 complete)
+Files changed: include/thinmint/board/unmakemove.h, src/board/unmakemove.cpp, tests/unit/unmakemove_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (17/17 tests passed)
+Perft status: all fixtures pass at depths 0-4 (unchanged from before, no regression)
+Git checkpoint: pending
+Result: success
+Known risks:
+- UndoState captures move, castling rights, EP square, halfmove clock, and captured piece type
+- unmake_move handles all move types: quiet, capture, castling, en passant, promotion, promotion capture
+- UndoStack provides simple vector-based stack for managing undo states during search
+- Round-trip tests verify exact board state restoration for all move classes
+- 17 test cases covering: undo stack operations, all move types, state preservation, sequential operations
+- Fixed multiple test FEN positions to ensure valid chess positions
+- Special attention needed for occupancy updates during promotion captures and en passant
+Next suggested feature: S03-F04 - Add make/unmake stress tests and random sequence regression tests
+
 ## 2026-04-26 22:00
 Sprint: sprint-03
 Feature: S03-F02

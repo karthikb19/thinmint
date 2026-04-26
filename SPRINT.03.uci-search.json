@@ -41,7 +41,7 @@
       "Undo data captures enough information for all move classes",
       "Round-trip tests restore the original board exactly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S03-F04",

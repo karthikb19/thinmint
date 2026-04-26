@@ -16,6 +16,7 @@ add_library(thinmint_core
   src/core/move.cpp
   src/board/board.cpp
   src/board/makemove.cpp
+  src/board/unmakemove.cpp
   src/movegen/attacks.cpp
   src/movegen/movegen.cpp
   src/perft/perft.cpp
@@ -168,4 +169,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_makemove_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_makemove_test COMMAND thinmint_makemove_test)
+
+  add_executable(thinmint_unmakemove_test
+    tests/unit/unmakemove_test.cpp
+  )
+
+  target_link_libraries(thinmint_unmakemove_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_unmakemove_test COMMAND thinmint_unmakemove_test)
 endif()
