@@ -68,3 +68,18 @@ Known risks:
 - local `opencode models` inspection is currently failing on an OpenCode database checkpoint issue, so the configured model string still needs one live run confirmation inside OpenCode
 - if OpenRouter expects a newer Kimi slug in your account, the first run will fail fast at model selection and should be corrected from the exact provider/model ID OpenCode shows
 Next suggested feature: run one single OpenCode iteration and confirm the active model/provider from the startup output
+
+## 2026-04-25 00:30
+Sprint: sprint-01
+Feature: S01-F05
+Title: Define square indexing and coordinate conversion
+Reason selected: highest-priority incomplete item with satisfied dependencies (scaffolding already exists)
+Files changed: include/thinmint/core/square.h, src/core/square.cpp, tests/unit/square_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh
+Perft status: not applicable (no move generation yet)
+Git checkpoint: pending
+Result: success
+Known risks:
+- This is the first chess domain code, so the abstractions need validation in later sprints
+- Some sprint items (F01-F04) were marked as passing because the scaffolding work from META-002 already covered their acceptance criteria
+Next suggested feature: S01-F06 - Define color, piece, and castling-rights representations

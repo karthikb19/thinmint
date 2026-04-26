@@ -12,7 +12,7 @@
       "A single documented CMake build command succeeds",
       "A main executable entrypoint exists"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S01-F02",
@@ -27,7 +27,7 @@
       "Test directories exist for unit and perft coverage",
       "Scripts directory exists for verification helpers"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S01-F03",
@@ -42,7 +42,7 @@
       "The script runs tests",
       "The script exits non-zero when validation fails"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S01-F04",
@@ -57,7 +57,7 @@
       "At least one built binary or CLI smoke test exists",
       "Tests run through scripts/verify.sh"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S01-F05",
