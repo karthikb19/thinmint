@@ -114,7 +114,7 @@
       "Promotion piece type is represented",
       "Encoding helpers are unit tested"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S01-F09",

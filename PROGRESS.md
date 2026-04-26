@@ -100,7 +100,24 @@ Known risks:
 - Some sprint items (F01-F04) were marked as passing because the scaffolding work from META-002 already covered their acceptance criteria
 Next suggested feature: S01-F06 - Define color, piece, and castling-rights representations
 
-## 2026-04-26 02:55
+## 2026-04-26 03:10
+Sprint: sprint-01
+Feature: S01-F08
+Title: Define compact move encoding with flags
+Reason selected: highest-priority incomplete item with satisfied dependencies (S01-F05, S01-F06 complete)
+Files changed: include/thinmint/core/move.h, src/core/move.cpp, tests/unit/move_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (5/5 tests passed)
+Perft status: not applicable (no move generation yet)
+Git checkpoint: pending
+Result: success
+Known risks:
+- Move encoding uses 16-bit format with flags in bits 12-15, squares in bits 0-11
+- UCI conversion validates format but not chess legality (e.g., e2e4q parses syntactically)
+- Castling moves encoded as king moves (e1g1, e8c8, etc.), rook move handled separately
+- En passant not marked as capture in encoding; special case needed in make/unmake
+Next suggested feature: S01-F09 - Define board state using piece and occupancy bitboards
+
+
 Sprint: sprint-01
 Feature: S01-F07
 Title: Implement bitboard helper primitives

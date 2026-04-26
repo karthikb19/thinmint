@@ -13,6 +13,7 @@ add_library(thinmint_core
   src/core/square.cpp
   src/core/piece.cpp
   src/core/bitboard.cpp
+  src/core/move.cpp
 )
 
 target_include_directories(thinmint_core
@@ -66,4 +67,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_bitboard_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_bitboard_test COMMAND thinmint_bitboard_test)
+
+  add_executable(thinmint_move_test
+    tests/unit/move_test.cpp
+  )
+
+  target_link_libraries(thinmint_move_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_move_test COMMAND thinmint_move_test)
 endif()
