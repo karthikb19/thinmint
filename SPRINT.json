@@ -99,7 +99,7 @@
       "Helpers exist for set, clear, test, popcount, and least-significant-bit scan",
       "Helpers are unit tested"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S01-F08",

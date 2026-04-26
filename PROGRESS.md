@@ -99,3 +99,21 @@ Known risks:
 - This is the first chess domain code, so the abstractions need validation in later sprints
 - Some sprint items (F01-F04) were marked as passing because the scaffolding work from META-002 already covered their acceptance criteria
 Next suggested feature: S01-F06 - Define color, piece, and castling-rights representations
+
+## 2026-04-26 02:55
+Sprint: sprint-01
+Feature: S01-F07
+Title: Implement bitboard helper primitives
+Reason selected: highest-priority incomplete item with satisfied dependencies (S01-F05, S01-F06 complete)
+Files changed: include/thinmint/core/bitboard.h, src/core/bitboard.cpp, tests/unit/bitboard_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (4/4 tests passed)
+Perft status: not applicable (no move generation yet)
+Git checkpoint: pending
+Result: success
+Known risks:
+- Bitboard operations use compiler intrinsics on GCC/Clang; MSVC intrinsics are referenced but MSVC is not tested
+- LSB/MSB operations assume bitboard != 0 for some operations - caller must check
+- All bitboard functions are header-only; may need to reconsider if binary size becomes an issue
+- Shift operations handle edge wrapping correctly but need validation in move generation context
+Next suggested feature: S01-F08 - Define compact move encoding with flags
+
