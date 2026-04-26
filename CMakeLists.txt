@@ -220,4 +220,20 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_search_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_search_test COMMAND thinmint_search_test)
+
+  add_executable(thinmint_iterative_deepening_test
+    tests/unit/iterative_deepening_test.cpp
+  )
+
+  target_link_libraries(thinmint_iterative_deepening_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_iterative_deepening_test COMMAND thinmint_iterative_deepening_test)
+
+  add_executable(thinmint_uci_go_test
+    tests/unit/uci_go_test.cpp
+  )
+
+  target_link_libraries(thinmint_uci_go_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_uci_go_test COMMAND thinmint_uci_go_test)
 endif()

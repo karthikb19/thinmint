@@ -81,6 +81,18 @@ int negamax(BoardState& board, int depth, int alpha, int beta, SearchStats& stat
 // Returns: SearchResult containing best move and score
 SearchResult search_root(BoardState& board, int depth);
 
+// Iterative deepening search
+// Searches at increasing depths from 1 to max_depth
+// Returns the best result from the deepest completed iteration
+//
+// Parameters:
+// - board: current position
+// - max_depth: maximum depth to search
+// - stats: optional pointer to receive search statistics
+//
+// Returns: SearchResult containing best move and score from deepest iteration
+SearchResult iterative_deepening(BoardState& board, int max_depth, SearchStats* stats = nullptr);
+
 // Quiescence search stub (for later sprint)
 // Currently just returns static evaluation
 int quiescence(BoardState& board, int alpha, int beta, SearchStats& stats);

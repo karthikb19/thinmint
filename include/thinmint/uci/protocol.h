@@ -8,6 +8,7 @@
 
 #include "thinmint/board/board.h"
 #include "thinmint/core/move.h"
+#include "thinmint/search/search.h"
 
 namespace thinmint::uci {
 
@@ -45,6 +46,7 @@ class Protocol {
   void HandleUciNewGame();
   void HandleQuit();
   void HandlePosition(std::istringstream& iss);
+  void HandleGo(std::istringstream& iss, std::ostream& out);
 
   // Apply a UCI move string to the current board
   // Returns true on success, false on failure

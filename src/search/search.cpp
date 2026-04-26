@@ -177,4 +177,65 @@ int quiescence(BoardState& board, int alpha, int beta, SearchStats& stats) {
     return evaluate(board);
 }
 
+SearchResult iterative_deepening(BoardState& board, int max_depth, SearchStats* stats) {
+    SearchResult final_result;
+    SearchStats local_stats;
+    SearchStats* accumulated_stats = stats ? stats : &local_stats;
+
+    // Remember starting node count to calculate nodes for this search only
+    uint64_t starting_nodes = accumulated_stats->nodes_searched;
+
+    // Generate legal moves once at the start
+    MoveList moves;
+    generate_legal_moves(board, moves);
+
+    // Check for terminal position
+    if (moves.empty()) {
+        final_result.score = get_terminal_score(board, 0);
+        final_result.nodes = 1;
+        final_result.best_move = MOVE_NONE;
+        final_result.depth = 0;
+        return final_result;
+    }
+
+    // If max_depth is 0, just evaluate
+    if (max_depth <= 0) {
+        final_result.score = evaluate(board);
+        final_result.nodes = 1;
+        final_result.best_move = MOVE_NONE;
+        final_result.depth = 0;
+        return final_result;
+    }
+
+    // Iterative deepening: search at depth 1, 2, ..., max_depth
+    for (int current_depth = 1; current_depth <= max_depth; ++current_depth) {
+        SearchResult depth_result = search_root(board, current_depth);
+
+        // Accumulate statistics
+        accumulated_stats->nodes_searched += depth_result.nodes;
+        accumulated_stats->current_depth = current_depth;
+        accumulated_stats->current_max_depth = current_depth;
+
+        // Save this iteration's result as our best so far
+        // (deeper search should be better, but we keep the result)
+        final_result = depth_result;
+
+        // If we found a forced mate at this depth, we can stop early
+        // The mate score is accurate, and deeper won't improve it
+        if (depth_result.mate_found) {
+            // But only stop if we're the side delivering mate
+            // and the mate is found within the current depth
+            if (depth_result.score > MATE_THRESHOLD) {
+                // Found mate for us - this is the best we can do
+                break;
+            }
+        }
+    }
+
+    // Update final result with nodes from this search only (not accumulated across calls)
+    final_result.nodes = accumulated_stats->nodes_searched - starting_nodes;
+
+    return final_result;
+}
+
 }  // namespace thinmint::search

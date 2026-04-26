@@ -3,8 +3,10 @@
 #include <sstream>
 
 #include "thinmint/core/version.h"
+#include "thinmint/core/move.h"
 #include "thinmint/board/makemove.h"
 #include "thinmint/movegen/movegen.h"
+#include "thinmint/search/search.h"
 
 namespace thinmint::uci {
 
@@ -36,6 +38,8 @@ bool Protocol::ProcessCommand(const std::string& line, std::ostream& out) {
     HandleQuit();
   } else if (command == "position") {
     HandlePosition(iss);
+  } else if (command == "go") {
+    HandleGo(iss, out);
   } else if (command == "debug") {
     // Debug mode - acknowledged but no-op for now
   } else if (command == "setoption") {
@@ -212,6 +216,71 @@ thinmint::core::Move Protocol::FindLegalMove(const std::string& uci_move) const 
   }
 
   return thinmint::core::MOVE_NONE;
+}
+
+void Protocol::HandleGo(std::istringstream& iss, std::ostream& out) {
+  std::string token;
+  int depth = -1;  // -1 means not specified
+
+  // Parse go command parameters
+  while (iss >> token) {
+    if (token == "depth") {
+      if (!(iss >> depth)) {
+        depth = -1;  // Invalid depth parameter
+      }
+    }
+    // Other parameters (wtime, btime, movetime, etc.) are parsed but ignored
+    // for now since we only support depth-limited search in this sprint
+    else if (token == "wtime" || token == "btime" || token == "winc" ||
+             token == "binc" || token == "movestogo" || token == "movetime") {
+      // Skip the value for these parameters
+      int value;
+      iss >> value;
+    } else if (token == "infinite") {
+      // Infinite search - we'll use a reasonable max depth
+      // Depth 6 is enough for meaningful search without excessive time
+      depth = 6;
+    }
+  }
+
+  // Default to depth 1 if no depth specified
+  if (depth < 0) {
+    depth = 1;
+  }
+
+  // Clamp to reasonable bounds
+  if (depth > thinmint::search::MAX_DEPTH) {
+    depth = thinmint::search::MAX_DEPTH;
+  }
+
+  // Perform iterative deepening search
+  thinmint::search::SearchResult result =
+      thinmint::search::iterative_deepening(board_, depth);
+
+  // Send info about the search
+  // Format: info depth X score cp Y nodes Z pv <bestmove>
+  out << "info depth " << result.depth;
+  if (result.mate_found) {
+    out << " score mate " << result.mate_in;
+  } else {
+    out << " score cp " << result.score;
+  }
+  out << " nodes " << result.nodes;
+  out << "\n";
+
+  // Send the best move
+  std::string best_move_str = "0000";
+  if (result.best_move != thinmint::core::MOVE_NONE) {
+    best_move_str = thinmint::core::move_to_uci(result.best_move);
+  }
+
+  out << "bestmove " << best_move_str << "\n";
+  out.flush();
+
+  // Also call callbacks if set
+  if (best_move_callback_) {
+    best_move_callback_(best_move_str, "");
+  }
 }
 
 }  // namespace thinmint::uci

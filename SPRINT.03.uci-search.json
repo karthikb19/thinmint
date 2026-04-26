@@ -129,7 +129,7 @@
       "Search deepens incrementally",
       "The engine remains responsive to basic UCI usage"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S03-F10",

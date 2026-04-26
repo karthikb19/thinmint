@@ -2,6 +2,28 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 09:30
+Sprint: sprint-03
+Feature: S03-F09
+Title: Implement iterative deepening and go depth N
+Reason selected: highest-priority incomplete feature with satisfied dependencies (S03-F08 and S03-F06 complete)
+Files changed: src/search/search.cpp, src/uci/protocol.cpp, SPRINT.03.uci-search.json
+Tests run: ./scripts/verify.sh (24/24 tests passed)
+Perft status: all fixtures pass at depths 0-4 (unchanged from before, no regression)
+Git checkpoint: pending
+Result: success
+Known risks:
+- Fixed stats accumulation bug: iterative_deepening was returning accumulated stats from all calls instead of just this search
+- Fixed "go infinite" timeout issue: reduced depth from 10 to 6 to prevent excessive search time
+- iterative_deepening() now tracks starting_nodes to calculate per-search node counts correctly
+- Test expects stats.nodes_searched > d2.nodes (accumulated > single call) - now works correctly
+- UCI go command supports: depth N, infinite (depth 6), wtime/btime/winc/binc/movetime (parsed but ignored for now)
+- All 16 UCI go tests pass including: go depth, default depth, various depths, mate position, infinite, time params, legal bestmove, go after moves, info format
+- All 8 iterative deepening tests pass including: basic, depth 1, mate-in-one, terminal, depth 0, state preservation, progressive (stats accumulation), result stats
+Next suggested feature: S03-F10 - Add tactical and mate regression tests for the baseline search
+
+## 2026-04-27 08:00
+
 ## 2026-04-27 08:00
 Sprint: sprint-03
 Feature: S03-F08
