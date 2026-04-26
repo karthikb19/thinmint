@@ -2,6 +2,24 @@
 
 Append one entry per iteration.
 
+## 2026-04-26 16:45
+Sprint: sprint-02
+Feature: S02-F05
+Title: Implement king-in-check detection
+Reason selected: highest-priority incomplete item with satisfied dependencies (S02-F01, F02, F03 all complete)
+Files changed: include/thinmint/movegen/attacks.h, src/movegen/attacks.cpp, src/board/board.cpp, tests/unit/check_detection_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (12/12 tests passed)
+Perft status: not applicable (check detection, not full move generation yet)
+Git checkpoint: pending
+Result: success
+Known risks:
+- is_square_attacked() function uses all attack types (pawn, knight, bishop, rook, queen, king)
+- Pawn attack detection uses reverse-shift logic (attacking square is behind the pawn relative to attack direction)
+- Sliding attacks include the blocker piece in attack ray - correct for captures but caller must handle appropriately
+- Check detection is O(1) for leapers, O(n) for sliding pieces (n = max 7 squares per ray)
+- No perft validation yet - legality filtering still needed in S02-F07
+Next suggested feature: S02-F06 - Implement castling and en passant generation rules
+
 ## 2026-04-26 15:30
 Sprint: sprint-02
 Feature: S02-F04
@@ -10,7 +28,7 @@ Reason selected: highest-priority incomplete item with satisfied dependencies (S
 Files changed: include/thinmint/movegen/movegen.h, src/movegen/movegen.cpp, tests/unit/pseudolegal_movegen_test.cpp, CMakeLists.txt
 Tests run: ./scripts/verify.sh (11/11 tests passed)
 Perft status: not applicable (pseudo-legal generation, not full legal move generation yet)
-Git checkpoint: pending
+Git checkpoint: 9601615 checkpoint(sprint-02): implement pseudo-legal move generation for all piece types
 Result: success
 Known risks:
 - Pseudo-legal generation includes king captures (correct for pseudo-legal, filtered later in legal move generation)

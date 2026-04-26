@@ -1,8 +1,10 @@
 #include "thinmint/movegen/attacks.h"
 
 #include "thinmint/core/bitboard.h"
+#include "thinmint/board/board.h"
 
 using namespace thinmint::core;
+using namespace thinmint::board;
 
 namespace thinmint::movegen {
 
@@ -307,6 +309,67 @@ Bitboard rook_attacks(Square sq, Bitboard occupancy) {
     }
 
     return attacks;
+}
+
+// Check if a square is attacked by any piece of the given color
+// This is used for check detection and castling legality
+bool is_square_attacked(const BoardState& board, Square sq, Color by_color) {
+    // Get opponent's pieces
+    Bitboard their_pawns = board.pieces_of(by_color, PIECE_PAWN);
+    Bitboard their_knights = board.pieces_of(by_color, PIECE_KNIGHT);
+    Bitboard their_bishops = board.pieces_of(by_color, PIECE_BISHOP);
+    Bitboard their_rooks = board.pieces_of(by_color, PIECE_ROOK);
+    Bitboard their_queens = board.pieces_of(by_color, PIECE_QUEEN);
+    Bitboard their_king = board.pieces_of(by_color, PIECE_KING);
+
+    // Check pawn attacks (from the perspective of the attacker)
+    // Pawns attack diagonally forward, so we check if any pawn attacks this square
+    // If White is attacking, check if there's a White pawn that attacks this square
+    // A White pawn on square X attacks northeast and northwest of X
+    // So to check if sq is attacked by a White pawn, we look at southeast and southwest of sq
+    Bitboard sq_bb = bb_from_square(sq);
+    if (by_color == COLOR_WHITE) {
+        // White pawns attack NE and NW. So sq is attacked if a White pawn is SE or SW of sq.
+        Bitboard se = bb_shift_southeast(sq_bb);
+        Bitboard sw = bb_shift_southwest(sq_bb);
+        if ((se & their_pawns) || (sw & their_pawns)) {
+            return true;
+        }
+    } else {
+        // Black pawns attack SE and SW. So sq is attacked if a Black pawn is NE or NW of sq.
+        Bitboard ne = bb_shift_northeast(sq_bb);
+        Bitboard nw = bb_shift_northwest(sq_bb);
+        if ((ne & their_pawns) || (nw & their_pawns)) {
+            return true;
+        }
+    }
+
+    // Check knight attacks
+    if (KNIGHT_ATTACKS[sq] & their_knights) {
+        return true;
+    }
+
+    // Check king attacks
+    if (KING_ATTACKS[sq] & their_king) {
+        return true;
+    }
+
+    // Check sliding piece attacks (bishop, rook, queen)
+    Bitboard occupancy = board.all_occupancy;
+
+    // Bishop and queen (diagonal)
+    Bitboard bishop_attacks_from_sq = bishop_attacks(sq, occupancy);
+    if (bishop_attacks_from_sq & (their_bishops | their_queens)) {
+        return true;
+    }
+
+    // Rook and queen (orthogonal)
+    Bitboard rook_attacks_from_sq = rook_attacks(sq, occupancy);
+    if (rook_attacks_from_sq & (their_rooks | their_queens)) {
+        return true;
+    }
+
+    return false;
 }
 
 }  // namespace thinmint::movegen

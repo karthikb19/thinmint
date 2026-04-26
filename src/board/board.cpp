@@ -3,6 +3,8 @@
 #include <sstream>
 #include <cctype>
 
+#include "thinmint/movegen/attacks.h"
+
 namespace thinmint::board {
 
 using namespace thinmint::core;
@@ -182,17 +184,15 @@ Square BoardState::king_square(Color c) const {
 }
 
 bool BoardState::is_check(Color c) const {
-    // For now, placeholder - actual check detection requires attack generation
-    // This will be implemented in S02 (legal move generation sprint)
+    // Check if the king of color c is attacked by any opponent piece
     Square king_sq = king_square(c);
     if (king_sq == SQUARE_NONE) {
         return false;  // No king - invalid position
     }
 
-    // TODO: Check if any opponent piece attacks the king square
-    // Requires attack generation from movegen module (S02)
-    // For now, return false to avoid compilation issues
-    return false;
+    // Use the movegen attack detection
+    Color opponent = !c;
+    return thinmint::movegen::is_square_attacked(*this, king_sq, opponent);
 }
 
 bool BoardState::is_valid() const {

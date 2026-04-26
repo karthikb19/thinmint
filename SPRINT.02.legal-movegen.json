@@ -68,7 +68,7 @@
       "Check detection works for all piece types",
       "Unit tests cover direct checks and discovered checks"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S02-F06",

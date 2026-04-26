@@ -126,4 +126,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_pseudolegal_movegen_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_pseudolegal_movegen_test COMMAND thinmint_pseudolegal_movegen_test)
+
+  add_executable(thinmint_check_detection_test
+    tests/unit/check_detection_test.cpp
+  )
+
+  target_link_libraries(thinmint_check_detection_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_check_detection_test COMMAND thinmint_check_detection_test)
 endif()

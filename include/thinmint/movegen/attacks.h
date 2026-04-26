@@ -3,6 +3,11 @@
 #include "thinmint/core/bitboard.h"
 #include "thinmint/core/piece.h"
 
+// Forward declaration to avoid circular include
+namespace thinmint::board {
+    class BoardState;
+}
+
 namespace thinmint::movegen {
 
 // Precomputed pawn attack tables
@@ -78,6 +83,11 @@ thinmint::core::Bitboard rook_attacks(thinmint::core::Square sq, thinmint::core:
 inline thinmint::core::Bitboard queen_attacks(thinmint::core::Square sq, thinmint::core::Bitboard occupancy) {
     return bishop_attacks(sq, occupancy) | rook_attacks(sq, occupancy);
 }
+
+// Check detection - determine if a square is attacked by a given color
+// This is used to check if the king is in check
+bool is_square_attacked(const thinmint::board::BoardState& board, thinmint::core::Square sq,
+                        thinmint::core::Color by_color);
 
 // Get en passant target square from a double push destination
 // Returns SQUARE_NONE if not a valid double push destination
