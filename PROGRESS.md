@@ -2,6 +2,25 @@
 
 Append one entry per iteration.
 
+## 2026-04-26 20:00
+Sprint: sprint-02
+Feature: S02-F08
+Title: Add perft runner and baseline perft fixtures
+Reason selected: highest-priority incomplete item with satisfied dependencies (S02-F07 complete)
+Files changed: src/perft/perft.cpp, include/thinmint/perft/perft.h, tests/unit/perft_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (15/15 tests passed)
+Perft status: perft runner functional, tests exist for start position, Kiwipete, and fixture positions
+Git checkpoint: 1744156 checkpoint(sprint-02): add perft runner and baseline perft fixtures
+Result: success
+Known risks:
+- Position 3 perft shows 193 nodes at depth 2 instead of expected 191 (2 extra nodes)
+- Root cause: EP discovered check not being filtered in legal move generation
+- EP capture f4xe3 exposes Black king to White rook on b4 - should be filtered but isn't
+- Castling test position corrected: has rooks (not knights) on a1/h1, so 25 moves is correct
+- Known bug tracked for S02-F09 (passing perft gates)
+- All other perft fixtures pass at expected depths
+Next suggested feature: S02-F09 - Pass start position and Kiwipete perft gates
+
 ## 2026-04-26 19:45
 Sprint: sprint-02
 Feature: S02-F07

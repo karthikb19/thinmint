@@ -17,6 +17,7 @@ add_library(thinmint_core
   src/board/board.cpp
   src/movegen/attacks.cpp
   src/movegen/movegen.cpp
+  src/perft/perft.cpp
 )
 
 target_include_directories(thinmint_core
@@ -150,4 +151,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_legal_movegen_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_legal_movegen_test COMMAND thinmint_legal_movegen_test)
+
+  add_executable(thinmint_perft_test
+    tests/unit/perft_test.cpp
+  )
+
+  target_link_libraries(thinmint_perft_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_perft_test COMMAND thinmint_perft_test)
 endif()

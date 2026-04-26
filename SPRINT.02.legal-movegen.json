@@ -112,7 +112,7 @@
       "Perft can run on an arbitrary FEN and depth",
       "Fixture-based perft tests exist"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S02-F09",
