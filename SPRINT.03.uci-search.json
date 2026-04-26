@@ -99,7 +99,7 @@
       "Material imbalances affect evaluation as expected",
       "Piece-square terms are applied consistently"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S03-F08",

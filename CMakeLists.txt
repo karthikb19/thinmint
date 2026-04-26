@@ -21,6 +21,7 @@ add_library(thinmint_core
   src/movegen/movegen.cpp
   src/perft/perft.cpp
   src/uci/protocol.cpp
+  src/eval/eval.cpp
 )
 
 target_include_directories(thinmint_core
@@ -202,4 +203,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_uci_position_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_uci_position_test COMMAND thinmint_uci_position_test)
+
+  add_executable(thinmint_eval_test
+    tests/unit/eval_test.cpp
+  )
+
+  target_link_libraries(thinmint_eval_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_eval_test COMMAND thinmint_eval_test)
 endif()

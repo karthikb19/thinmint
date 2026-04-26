@@ -2,6 +2,27 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 01:00
+Sprint: sprint-03
+Feature: S03-F07
+Title: Implement baseline evaluation
+Reason selected: highest-priority incomplete feature with satisfied dependencies (S03-F03 complete)
+Files changed: include/thinmint/eval/eval.h, src/eval/eval.cpp, tests/unit/eval_test.cpp, CMakeLists.txt, SPRINT.03.uci-search.json
+Tests run: ./scripts/verify.sh (21/21 tests passed)
+Perft status: all fixtures pass at depths 0-4 (unchanged from before, no regression)
+Git checkpoint: pending
+Result: success
+Known risks:
+- Material values: P=100, N=320, B=330, R=500, Q=900, K=20000
+- Piece-square tables favor central squares for knights, long diagonals for bishops
+- PST values are mirrored for Black pieces (rank flipped)
+- Evaluation returns score from side_to_move perspective (positive = good for mover)
+- 12 test cases covering: material values, equal/imbalanced material, PST access, center vs corner, perspective flipping, positional factors, king safety, game phase, determinism, known positions
+- Game phase detection based on non-pawn material (0 = endgame, 1 = middlegame)
+Next suggested feature: S03-F08 - Implement negamax and alpha-beta search
+
+
+
 ## 2026-04-27 00:15
 Sprint: sprint-03
 Feature: S03-F06
