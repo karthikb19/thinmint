@@ -83,7 +83,7 @@
       "Blocked or attacked castling paths are excluded when legality is checked",
       "En passant candidates are generated only when the ep square is present"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S02-F07",

@@ -70,10 +70,15 @@ private:
 // - Captures and quiet moves
 // - Promotions (all four promotion piece types)
 // - En passant (if EP square is set)
-// - Castling is NOT included here (added in S02-F06)
+// - Castling (if rights allow and path is clear and king is safe)
 //
 // Returns the number of moves generated
 size_t generate_pseudo_legal_moves(const thinmint::board::BoardState& board, MoveList& moves);
+
+// Generate castling moves only
+// Checks castling rights, rook presence, clear path, and king safety
+// This is separated for testing and potential use in legal move filtering
+size_t generate_castling_moves(const thinmint::board::BoardState& board, MoveList& moves);
 
 // Generate only capture moves (for quiescence search later)
 // Includes promotion captures

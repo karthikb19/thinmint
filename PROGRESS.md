@@ -2,6 +2,26 @@
 
 Append one entry per iteration.
 
+## 2026-04-26 18:45
+Sprint: sprint-02
+Feature: S02-F06
+Title: Implement castling and en passant generation rules
+Reason selected: highest-priority incomplete item with satisfied dependencies (S02-F04, F05 complete)
+Files changed: include/thinmint/movegen/movegen.h, src/movegen/movegen.cpp, tests/unit/castling_ep_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (13/13 tests passed)
+Perft status: not applicable (castling and EP generation, not full legal move generation yet)
+Git checkpoint: bd121ca checkpoint(sprint-02): implement castling and en passant generation rules
+Result: success
+Known risks:
+- Castling checks: rights, rook presence, clear path, king not in check, squares not attacked
+- En passant had a bug: was looking for pawns on wrong rank (EP square rank instead of pawn rank)
+- Fixed EP generation to look for pawns one rank behind EP square (relative to moving side)
+- Castling generation checks: king starting position, rights, rook presence, path clear, no check, no attacked squares
+- Queenside B1 attack doesn't block castling (king doesn't pass through B1)
+- All castling edge cases tested: blocked paths, attacked squares, missing rights, king in check
+- 21 test cases covering castling (12) and en passant (6) scenarios
+Next suggested feature: S02-F07 - Implement pin handling and legal move filtering
+
 ## 2026-04-26 16:45
 Sprint: sprint-02
 Feature: S02-F05
@@ -10,7 +30,7 @@ Reason selected: highest-priority incomplete item with satisfied dependencies (S
 Files changed: include/thinmint/movegen/attacks.h, src/movegen/attacks.cpp, src/board/board.cpp, tests/unit/check_detection_test.cpp, CMakeLists.txt
 Tests run: ./scripts/verify.sh (12/12 tests passed)
 Perft status: not applicable (check detection, not full move generation yet)
-Git checkpoint: pending
+Git checkpoint: dbcde90 checkpoint(sprint-02): implement king-in-check detection
 Result: success
 Known risks:
 - is_square_attacked() function uses all attack types (pawn, knight, bishop, rook, queen, king)

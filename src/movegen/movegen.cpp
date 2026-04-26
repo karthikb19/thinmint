@@ -175,17 +175,21 @@ void generate_pawn_moves(const BoardState& board, MoveList& moves, Color us, Col
     if (board.en_passant_square != SQUARE_NONE) {
         Square ep_sq = board.en_passant_square;
         File ep_file = file_of(ep_sq);
+        // Capturing pawn is one rank BEHIND the EP square (from our perspective)
+        Rank pawn_rank = (us == COLOR_WHITE) ?
+                         static_cast<Rank>(rank_of(ep_sq) - 1) :  // White: EP on rank 6, pawn on rank 5
+                         static_cast<Rank>(rank_of(ep_sq) + 1);   // Black: EP on rank 3, pawn on rank 4
 
-        // EP captures can come from adjacent files
+        // EP captures can come from adjacent files on the pawn's rank
         if (ep_file > FILE_A) {
-            Square left_sq = make_square(static_cast<File>(ep_file - 1), rank_of(ep_sq));
+            Square left_sq = make_square(static_cast<File>(ep_file - 1), pawn_rank);
             if (board.piece_type_at(left_sq) == PIECE_PAWN &&
                 board.color_at(left_sq) == us) {
                 add_move(moves, left_sq, ep_sq, MoveFlags::EP_CAPTURE);
             }
         }
         if (ep_file < FILE_H) {
-            Square right_sq = make_square(static_cast<File>(ep_file + 1), rank_of(ep_sq));
+            Square right_sq = make_square(static_cast<File>(ep_file + 1), pawn_rank);
             if (board.piece_type_at(right_sq) == PIECE_PAWN &&
                 board.color_at(right_sq) == us) {
                 add_move(moves, right_sq, ep_sq, MoveFlags::EP_CAPTURE);
@@ -209,6 +213,122 @@ void generate_leaper_moves(const BoardState& board, MoveList& moves, Color us, C
             Square to_sq = bb_pop_square(attacks);
             MoveFlags flags = bb_test(their_pieces, to_sq) ? MoveFlags::CAPTURE : MoveFlags::QUIET;
             add_move(moves, from_sq, to_sq, flags);
+        }
+    }
+}
+
+// Generate castling moves
+// Castling is pseudo-legal if:
+// 1. The side has the castling right
+// 2. King and rook are in their starting positions
+// 3. The path between king and rook is clear
+// 4. King is not in check
+// 5. King does not pass through or end up on an attacked square
+void generate_castling_moves_internal(const BoardState& board, MoveList& moves, Color us) {
+    using namespace thinmint::movegen;
+
+    CastlingRights rights = board.castling_rights;
+    if (rights == CASTLING_NONE) {
+        return;
+    }
+
+    // Get king square
+    Square king_sq = board.king_square(us);
+    if (king_sq == SQUARE_NONE) {
+        return;
+    }
+
+    // Check that king is in starting position
+    Square king_start = king_start_square(us);
+    if (king_sq != king_start) {
+        return;
+    }
+
+    // Check if king is in check - cannot castle while in check
+    if (board.is_check(us)) {
+        return;
+    }
+
+    Bitboard occupancy = board.all_occupancy;
+    Color them = !us;
+
+    if (us == COLOR_WHITE) {
+        // White kingside castling (O-O): E1 -> G1, rook H1 -> F1
+        if (has_castling_right(rights, CASTLING_WHITE_KINGSIDE)) {
+            Square rook_sq = SQUARE_H1;
+            // Check rook is present
+            if (board.piece_type_at(rook_sq) == PIECE_ROOK &&
+                board.color_at(rook_sq) == COLOR_WHITE) {
+                // Check path is clear: F1 and G1 must be empty
+                if (!bb_test(occupancy, SQUARE_F1) && !bb_test(occupancy, SQUARE_G1)) {
+                    // Check king doesn't pass through check (F1 must not be attacked)
+                    // and doesn't end up in check (G1 must not be attacked)
+                    if (!is_square_attacked(board, SQUARE_F1, them) &&
+                        !is_square_attacked(board, SQUARE_G1, them)) {
+                        add_move(moves, SQUARE_E1, SQUARE_G1, MoveFlags::CASTLING);
+                    }
+                }
+            }
+        }
+
+        // White queenside castling (O-O-O): E1 -> C1, rook A1 -> D1
+        if (has_castling_right(rights, CASTLING_WHITE_QUEENSIDE)) {
+            Square rook_sq = SQUARE_A1;
+            // Check rook is present
+            if (board.piece_type_at(rook_sq) == PIECE_ROOK &&
+                board.color_at(rook_sq) == COLOR_WHITE) {
+                // Check path is clear: B1, C1, and D1 must be empty
+                if (!bb_test(occupancy, SQUARE_B1) &&
+                    !bb_test(occupancy, SQUARE_C1) &&
+                    !bb_test(occupancy, SQUARE_D1)) {
+                    // Check king doesn't pass through check (D1 must not be attacked)
+                    // and doesn't end up in check (C1 must not be attacked)
+                    // Note: B1 can be attacked (king doesn't pass through it)
+                    if (!is_square_attacked(board, SQUARE_D1, them) &&
+                        !is_square_attacked(board, SQUARE_C1, them)) {
+                        add_move(moves, SQUARE_E1, SQUARE_C1, MoveFlags::CASTLING);
+                    }
+                }
+            }
+        }
+    } else {
+        // Black kingside castling (O-O): E8 -> G8, rook H8 -> F8
+        if (has_castling_right(rights, CASTLING_BLACK_KINGSIDE)) {
+            Square rook_sq = SQUARE_H8;
+            // Check rook is present
+            if (board.piece_type_at(rook_sq) == PIECE_ROOK &&
+                board.color_at(rook_sq) == COLOR_BLACK) {
+                // Check path is clear: F8 and G8 must be empty
+                if (!bb_test(occupancy, SQUARE_F8) && !bb_test(occupancy, SQUARE_G8)) {
+                    // Check king doesn't pass through check (F8 must not be attacked)
+                    // and doesn't end up in check (G8 must not be attacked)
+                    if (!is_square_attacked(board, SQUARE_F8, them) &&
+                        !is_square_attacked(board, SQUARE_G8, them)) {
+                        add_move(moves, SQUARE_E8, SQUARE_G8, MoveFlags::CASTLING);
+                    }
+                }
+            }
+        }
+
+        // Black queenside castling (O-O-O): E8 -> C8, rook A8 -> D8
+        if (has_castling_right(rights, CASTLING_BLACK_QUEENSIDE)) {
+            Square rook_sq = SQUARE_A8;
+            // Check rook is present
+            if (board.piece_type_at(rook_sq) == PIECE_ROOK &&
+                board.color_at(rook_sq) == COLOR_BLACK) {
+                // Check path is clear: B8, C8, and D8 must be empty
+                if (!bb_test(occupancy, SQUARE_B8) &&
+                    !bb_test(occupancy, SQUARE_C8) &&
+                    !bb_test(occupancy, SQUARE_D8)) {
+                    // Check king doesn't pass through check (D8 must not be attacked)
+                    // and doesn't end up in check (C8 must not be attacked)
+                    // Note: B8 can be attacked (king doesn't pass through it)
+                    if (!is_square_attacked(board, SQUARE_D8, them) &&
+                        !is_square_attacked(board, SQUARE_C8, them)) {
+                        add_move(moves, SQUARE_E8, SQUARE_C8, MoveFlags::CASTLING);
+                    }
+                }
+            }
         }
     }
 }
@@ -270,7 +390,8 @@ size_t generate_pseudo_legal_moves(const BoardState& board, MoveList& moves) {
     // Generate king moves
     generate_leaper_moves(board, moves, us, them, PIECE_KING, KING_ATTACKS);
 
-    // Note: Castling is not included here - it will be added in S02-F06
+    // Generate castling moves
+    generate_castling_moves_internal(board, moves, us);
 
     return moves.size();
 }
@@ -304,6 +425,13 @@ size_t generate_quiet_moves(const BoardState& board, MoveList& moves) {
         }
     }
 
+    return moves.size();
+}
+
+// Generate castling moves only
+size_t generate_castling_moves(const BoardState& board, MoveList& moves) {
+    moves.clear();
+    generate_castling_moves_internal(board, moves, board.side_to_move);
     return moves.size();
 }
 

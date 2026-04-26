@@ -134,4 +134,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_check_detection_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_check_detection_test COMMAND thinmint_check_detection_test)
+
+  add_executable(thinmint_castling_ep_test
+    tests/unit/castling_ep_test.cpp
+  )
+
+  target_link_libraries(thinmint_castling_ep_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_castling_ep_test COMMAND thinmint_castling_ep_test)
 endif()
