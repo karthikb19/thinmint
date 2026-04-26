@@ -53,3 +53,18 @@ Known risks:
 - this is scaffolding only and does not implement any chess-domain behavior
 - sprint items remain intentionally unmodified even though some bootstrap acceptance criteria now exist on disk
 Next suggested feature: point OpenCode at SPRINT.json and let it start with the first real engine feature
+
+## 2026-04-26 00:05
+Sprint: meta
+Feature: META-003
+Title: Pin OpenCode project model and harden the loop script
+Reason selected: the control loop needed an explicit provider/model ID and a fixed verification command before autonomous runs
+Files changed: opencode.json, scripts/opencode-loop.sh
+Tests run: ./scripts/verify.sh
+Perft status: not applicable
+Git checkpoint: pending
+Result: success
+Known risks:
+- local `opencode models` inspection is currently failing on an OpenCode database checkpoint issue, so the configured model string still needs one live run confirmation inside OpenCode
+- if OpenRouter expects a newer Kimi slug in your account, the first run will fail fast at model selection and should be corrected from the exact provider/model ID OpenCode shows
+Next suggested feature: run one single OpenCode iteration and confirm the active model/provider from the startup output
