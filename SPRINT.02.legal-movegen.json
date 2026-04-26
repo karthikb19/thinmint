@@ -25,7 +25,7 @@
       "Knight attacks are correct from center, edge, and corner squares",
       "King attacks are correct from center, edge, and corner squares"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S02-F03",

@@ -9,12 +9,39 @@ namespace thinmint::movegen {
 // Index by [color][square] where color: 0=White, 1=Black
 extern thinmint::core::Bitboard PAWN_ATTACKS[2][64];
 
-// Initialize pawn attack tables (call once at startup)
+// Precomputed knight attack tables
+// Index by [square]
+extern thinmint::core::Bitboard KNIGHT_ATTACKS[64];
+
+// Precomputed king attack tables
+// Index by [square]
+extern thinmint::core::Bitboard KING_ATTACKS[64];
+
+// Initialize attack tables (call once at startup)
 void init_pawn_attacks();
+void init_knight_attacks();
+void init_king_attacks();
+
+// Initialize all attack tables
+inline void init_all_attacks() {
+    init_pawn_attacks();
+    init_knight_attacks();
+    init_king_attacks();
+}
 
 // Get pawn attacks for a single pawn on a given square
 inline thinmint::core::Bitboard pawn_attacks(thinmint::core::Square sq, thinmint::core::Color c) {
     return PAWN_ATTACKS[static_cast<int>(c)][sq];
+}
+
+// Get knight attacks for a knight on a given square
+inline thinmint::core::Bitboard knight_attacks(thinmint::core::Square sq) {
+    return KNIGHT_ATTACKS[sq];
+}
+
+// Get king attacks for a king on a given square
+inline thinmint::core::Bitboard king_attacks(thinmint::core::Square sq) {
+    return KING_ATTACKS[sq];
 }
 
 // Get attacks for all pawns of a given color from a bitboard of pawn positions

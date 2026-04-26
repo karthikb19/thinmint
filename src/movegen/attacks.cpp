@@ -6,8 +6,10 @@ using namespace thinmint::core;
 
 namespace thinmint::movegen {
 
-// Static storage for precomputed pawn attacks
+// Static storage for precomputed attack tables
 Bitboard PAWN_ATTACKS[2][64];
+Bitboard KNIGHT_ATTACKS[64];
+Bitboard KING_ATTACKS[64];
 
 // Initialize pawn attack lookup table
 void init_pawn_attacks() {
@@ -105,6 +107,120 @@ Bitboard pawn_promotion_captures(Bitboard pawns, Bitboard enemy_pieces, Color c)
         Bitboard on_promotion_rank = pawns & BB_RANK_2;
         Bitboard attacks = bb_shift_southeast(on_promotion_rank) | bb_shift_southwest(on_promotion_rank);
         return attacks & enemy_pieces;
+    }
+}
+
+// Initialize knight attack lookup table
+void init_knight_attacks() {
+    // Knight moves in an "L" pattern: 2 squares in one direction, 1 square perpendicular
+    // Offsets from current square:
+    //   NNE: +17, NEE: +10, SEE: -6, SSE: -15
+    //   SSW: -17, SWW: -10, NWW: +6, NNW: +15
+    
+    for (Square sq = 0; sq < 64; ++sq) {
+        Bitboard bb = bb_from_square(sq);
+        Bitboard attacks = BB_EMPTY;
+        
+        // North-northeast (+17): file+1, rank+2
+        // Valid if not on H-file and not on 7th or 8th rank
+        if ((sq % 8) < 7 && (sq / 8) < 6) {
+            attacks |= bb << 17;
+        }
+        
+        // North-east-east (+10): file+2, rank+1
+        // Valid if not on G or H-file and not on 8th rank
+        if ((sq % 8) < 6 && (sq / 8) < 7) {
+            attacks |= bb << 10;
+        }
+        
+        // South-east-east (-6): file+2, rank-1
+        // Valid if not on G or H-file and not on 1st rank
+        if ((sq % 8) < 6 && (sq / 8) > 0) {
+            attacks |= bb >> 6;
+        }
+        
+        // South-southeast (-15): file+1, rank-2
+        // Valid if not on H-file and not on 1st or 2nd rank
+        if ((sq % 8) < 7 && (sq / 8) > 1) {
+            attacks |= bb >> 15;
+        }
+        
+        // South-southwest (-17): file-1, rank-2
+        // Valid if not on A-file and not on 1st or 2nd rank
+        if ((sq % 8) > 0 && (sq / 8) > 1) {
+            attacks |= bb >> 17;
+        }
+        
+        // South-west-west (-10): file-2, rank-1
+        // Valid if not on A or B-file and not on 1st rank
+        if ((sq % 8) > 1 && (sq / 8) > 0) {
+            attacks |= bb >> 10;
+        }
+        
+        // North-west-west (+6): file-2, rank+1
+        // Valid if not on A or B-file and not on 8th rank
+        if ((sq % 8) > 1 && (sq / 8) < 7) {
+            attacks |= bb << 6;
+        }
+        
+        // North-northwest (+15): file-1, rank+2
+        // Valid if not on A-file and not on 7th or 8th rank
+        if ((sq % 8) > 0 && (sq / 8) < 6) {
+            attacks |= bb << 15;
+        }
+        
+        KNIGHT_ATTACKS[sq] = attacks;
+    }
+}
+
+// Initialize king attack lookup table
+void init_king_attacks() {
+    // King moves one square in any direction
+    for (Square sq = 0; sq < 64; ++sq) {
+        Bitboard bb = bb_from_square(sq);
+        Bitboard attacks = BB_EMPTY;
+        
+        // North (+8): valid if not on 8th rank
+        if ((sq / 8) < 7) {
+            attacks |= bb << 8;
+        }
+        
+        // Northeast (+9): valid if not on H-file and not on 8th rank
+        if ((sq % 8) < 7 && (sq / 8) < 7) {
+            attacks |= bb << 9;
+        }
+        
+        // East (+1): valid if not on H-file
+        if ((sq % 8) < 7) {
+            attacks |= bb << 1;
+        }
+        
+        // Southeast (-7): valid if not on H-file and not on 1st rank
+        if ((sq % 8) < 7 && (sq / 8) > 0) {
+            attacks |= bb >> 7;
+        }
+        
+        // South (-8): valid if not on 1st rank
+        if ((sq / 8) > 0) {
+            attacks |= bb >> 8;
+        }
+        
+        // Southwest (-9): valid if not on A-file and not on 1st rank
+        if ((sq % 8) > 0 && (sq / 8) > 0) {
+            attacks |= bb >> 9;
+        }
+        
+        // West (-1): valid if not on A-file
+        if ((sq % 8) > 0) {
+            attacks |= bb >> 1;
+        }
+        
+        // Northwest (+7): valid if not on A-file and not on 8th rank
+        if ((sq % 8) > 0 && (sq / 8) < 7) {
+            attacks |= bb << 7;
+        }
+        
+        KING_ATTACKS[sq] = attacks;
     }
 }
 

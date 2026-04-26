@@ -20,6 +20,22 @@ Notes:
 Next suggested feature: ...
 ```
 
+## 2026-04-25 21:15
+Sprint: sprint-02
+Feature: S02-F02
+Title: Implement knight and king attack generation
+Reason selected: highest-priority incomplete item with satisfied dependencies (no dependencies required, S02-F01 complete)
+Files changed: include/thinmint/movegen/attacks.h, src/movegen/attacks.cpp, tests/unit/knight_king_attacks_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (9/9 tests passed)
+Perft status: not applicable (attack generation, not move generation yet)
+Git checkpoint: pending
+Result: success
+Known risks:
+- Knight and king attack tables use direct index arithmetic which could be error-prone on edge cases
+- All attack functions are inline and use precomputed tables - memory vs speed tradeoff
+- No occupancy-aware attacks for knight/king (not needed as they're leapers)
+Next suggested feature: S02-F03 - Implement bishop, rook, and queen sliding attacks
+
 ## 2026-04-25 17:15
 Sprint: sprint-02
 Feature: S02-F01
