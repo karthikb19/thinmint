@@ -2,6 +2,46 @@
 
 Append one entry per iteration.
 
+## 2026-04-26 23:45
+Sprint: sprint-03
+Feature: S03-F05
+Title: Implement UCI handshake and readiness commands
+Reason selected: highest-priority incomplete feature with satisfied dependencies (S03-F01 complete)
+Files changed: include/thinmint/uci/protocol.h, src/uci/protocol.cpp, tests/unit/uci_protocol_test.cpp, CMakeLists.txt, SPRINT.03.uci-search.json
+Tests run: ./scripts/verify.sh (19/19 tests passed)
+Perft status: not applicable (UCI protocol implementation, no chess rules changes)
+Git checkpoint: pending
+Result: success
+Known risks:
+- Protocol class handles uci, isready, ucinewgame, quit, debug, setoption commands
+- UCI spec requires "uciok" and "readyok" responses - both implemented
+- debug and setoption commands are acknowledged but no-op (acceptable for baseline)
+- Unknown commands are silently ignored per UCI spec
+- 10 test cases covering: uci response, isready response, ucinewgame, quit, empty commands, unknown commands, command sequences
+- Callbacks defined for future search integration (SendBestMoveCallback, SendInfoCallback)
+- IsReady() state tracking implemented for future ucinewgame state reset
+Next suggested feature: S03-F06 - Implement UCI position parsing for startpos and fen
+
+## 2026-04-26 23:30
+Sprint: sprint-03
+Feature: S03-F04
+Title: Add make/unmake stress tests and random sequence regression tests
+Reason selected: highest-priority incomplete feature with satisfied dependencies (S03-F03 complete)
+Files changed: tests/unit/make_unmake_stress_test.cpp, CMakeLists.txt, SPRINT.03.uci-search.json
+Tests run: ./scripts/verify.sh (18/18 tests passed)
+Perft status: all fixtures pass at depths 0-4 (unchanged from before, no regression)
+Git checkpoint: 7e495ae checkpoint(sprint-03): add make/unmake stress tests and random sequence regression tests
+Result: success
+Known risks:
+- 15 stress test functions covering: opening sequence, captures, castling, EP, promotions
+- Tests use both hardcoded legal moves and random legal move sequences
+- Random sequence tests use fixed seed (42, 12345) for reproducibility
+- All tests verify exact board state restoration via boards_equal()
+- Helper functions for undo state capture and captured piece type detection
+- Tests cover special cases: castling rights through captures, halfmove clock consistency
+- King adjacency edge case ensures kings never move adjacent to each other
+Next suggested feature: S03-F05 - Implement UCI handshake and readiness commands
+
 ## 2026-04-26 23:00
 Sprint: sprint-03
 Feature: S03-F03

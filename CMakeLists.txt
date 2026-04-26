@@ -20,6 +20,7 @@ add_library(thinmint_core
   src/movegen/attacks.cpp
   src/movegen/movegen.cpp
   src/perft/perft.cpp
+  src/uci/protocol.cpp
 )
 
 target_include_directories(thinmint_core
@@ -185,4 +186,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_make_unmake_stress_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_make_unmake_stress_test COMMAND thinmint_make_unmake_stress_test)
+
+  add_executable(thinmint_uci_protocol_test
+    tests/unit/uci_protocol_test.cpp
+  )
+
+  target_link_libraries(thinmint_uci_protocol_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_uci_protocol_test COMMAND thinmint_uci_protocol_test)
 endif()

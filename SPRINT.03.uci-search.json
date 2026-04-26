@@ -70,7 +70,7 @@
       "Engine responds to isready with readyok",
       "Engine supports ucinewgame"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S03-F06",
