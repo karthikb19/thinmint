@@ -21,9 +21,11 @@ namespace thinmint::board {
 // - Fullmove number is incremented after Black's move
 // - En passant square is set/updated for double pawn pushes
 // - Castling rights are updated when king or rooks move
+// - Castling: moves both king and rook, updates their bitboards
+// - En passant: removes the captured pawn from the correct square
+// - Promotion: replaces pawn with promoted piece
 //
-// Note: Special moves (castling, en passant, promotion) are handled
-// by S03-F02. This function handles quiet moves and captures.
+// Handles all move types: quiet, captures, castling, en passant, promotions
 void make_move(BoardState& board, thinmint::core::Move move);
 
 }  // namespace thinmint::board

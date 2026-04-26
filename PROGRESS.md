@@ -2,6 +2,24 @@
 
 Append one entry per iteration.
 
+## 2026-04-26 22:00
+Sprint: sprint-03
+Feature: S03-F02
+Title: Implement make move for castling, en passant, and promotions
+Reason selected: highest-priority incomplete feature with satisfied dependencies (S03-F01 complete)
+Files changed: src/board/makemove.cpp, tests/unit/makemove_test.cpp, include/thinmint/board/makemove.h
+Tests run: ./scripts/verify.sh (16/16 tests passed)
+Perft status: all fixtures pass at depths 0-4 (unchanged from before, no regression)
+Git checkpoint: pending
+Result: success
+Known risks:
+- Implementation already existed from S03-F01, this sprint focused on adding comprehensive tests
+- Fixed castling rights update bug: was checking piece on board after move instead of tracking moving piece type
+- Fixed en passant occupancy bug: was not clearing the captured pawn square from all_occupancy
+- Added 11 new test cases covering all special moves: kingside/queenside castling, castling rights updates, EP captures, promotions
+- All special moves now verified to maintain board invariants
+Next suggested feature: S03-F03 - Implement unmake move with undo state
+
 ## 2026-04-26 21:30
 Sprint: sprint-03
 Feature: S03-F01

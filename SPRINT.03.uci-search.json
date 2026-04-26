@@ -27,7 +27,7 @@
       "En passant removes the correct pawn",
       "Promotion replaces the pawn with the promoted piece"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S03-F03",

@@ -24,9 +24,10 @@ void get_castling_rook_move(Square king_from, Square king_to, Square& rook_from,
 }
 
 // Update castling rights when a piece moves from a square
-void update_castling_rights_from(BoardState& board, Square from) {
+// piece_moved: the type of piece that moved (needed because piece may already be moved from 'from' square)
+void update_castling_rights_from(BoardState& board, Square from, PieceType piece_moved) {
     // If king moves, lose all castling rights for that side
-    if (bb_test(board.pieces[static_cast<size_t>(board.side_to_move)][static_cast<size_t>(PIECE_KING)], from)) {
+    if (piece_moved == PIECE_KING) {
         if (board.side_to_move == COLOR_WHITE) {
             board.castling_rights = static_cast<CastlingRights>(
                 board.castling_rights & ~(CASTLING_WHITE_KINGSIDE | CASTLING_WHITE_QUEENSIDE));
@@ -101,15 +102,16 @@ void make_move(BoardState& board, Move move) {
     bool is_cast = is_castling(move);
     bool is_ep = is_en_passant(move);
 
+    // For en passant, the captured pawn is not on the 'to' square
+    Square captured_square = to;
+    if (is_ep) {
+        // The captured pawn is one square behind the EP target
+        captured_square = (us == COLOR_WHITE)
+            ? static_cast<Square>(to - 8)   // Black pawn on rank 5
+            : static_cast<Square>(to + 8);  // White pawn on rank 4
+    }
+
     if (is_cap || is_ep) {
-        // For en passant, the captured pawn is not on the 'to' square
-        Square captured_square = to;
-        if (is_ep) {
-            // The captured pawn is one square behind the EP target
-            captured_square = (us == COLOR_WHITE)
-                ? static_cast<Square>(to - 8)   // Black pawn on rank 5
-                : static_cast<Square>(to + 8);  // White pawn on rank 4
-        }
 
         // Remove captured piece from opponent's bitboards
         for (size_t pt = 1; pt < PIECE_TYPE_COUNT; ++pt) {
@@ -172,11 +174,16 @@ void make_move(BoardState& board, Move move) {
     }
 
     // Update total occupancy
-    // For captures, the captured square is cleared, so we need to handle it
-    if (is_cap || is_ep) {
-        // For captures, the destination square was occupied by opponent
+    if (is_ep) {
+        // En passant: captured piece is on a different square
+        // Clear 'from', clear captured square, set 'to'
+        board.all_occupancy &= ~bb_from_square(from);
+        board.all_occupancy &= ~bb_from_square(captured_square);
+        board.all_occupancy |= bb_from_square(to);
+    } else if (is_cap) {
+        // Regular capture: destination square was occupied by opponent
         // We need to clear the 'from' bit and set the 'to' bit
-        // But we already cleared the captured piece above
+        // The captured piece was cleared above from opponent's occupancy
         board.all_occupancy &= ~bb_from_square(from);
         board.all_occupancy |= bb_from_square(to);
     } else {
@@ -185,7 +192,8 @@ void make_move(BoardState& board, Move move) {
     }
 
     // Update castling rights if king or rook moved
-    update_castling_rights_from(board, from);
+    // Pass the piece type before it was moved
+    update_castling_rights_from(board, from, moving_pt);
 
     // Update en passant square
     if (moving_pt == PIECE_PAWN && std::abs(static_cast<int>(to) - static_cast<int>(from)) == 16) {

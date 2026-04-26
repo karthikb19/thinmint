@@ -322,9 +322,347 @@ void test_board_validity() {
     std::cout << "PASS" << std::endl;
 }
 
+// ============ SPECIAL MOVES TESTS (S03-F02) ============
+
+// Test kingside castling
+void test_kingside_castling() {
+    std::cout << "  Testing kingside castling... ";
+
+    // White kingside castling
+    BoardState board = board_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1");
+
+    // Verify initial state
+    assert(has_piece_at(board, SQ_E1, COLOR_WHITE, PIECE_KING));
+    assert(has_piece_at(board, SQ_H1, COLOR_WHITE, PIECE_ROOK));
+    assert(has_castling_right(board.castling_rights, CASTLING_WHITE_KINGSIDE));
+
+    // e1-g1 castling
+    Move move = make_castling(SQ_E1, SQ_G1);
+    make_move(board, move);
+
+    // King moved to g1
+    assert(!has_piece_at(board, SQ_E1, COLOR_WHITE, PIECE_KING));
+    assert(has_piece_at(board, SQ_G1, COLOR_WHITE, PIECE_KING));
+
+    // Rook moved to f1
+    assert(!has_piece_at(board, SQ_H1, COLOR_WHITE, PIECE_ROOK));
+    assert(has_piece_at(board, SQ_F1, COLOR_WHITE, PIECE_ROOK));
+
+    // Castling rights lost for white
+    assert(!has_castling_right(board.castling_rights, CASTLING_WHITE_KINGSIDE));
+    assert(!has_castling_right(board.castling_rights, CASTLING_WHITE_QUEENSIDE));
+
+    // Side to move changed
+    assert(board.side_to_move == COLOR_BLACK);
+
+    std::cout << "PASS" << std::endl;
+}
+
+// Test queenside castling
+void test_queenside_castling() {
+    std::cout << "  Testing queenside castling... ";
+
+    // Black queenside castling
+    BoardState board = board_from_fen("r3kbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1");
+
+    // Verify initial state
+    assert(has_piece_at(board, SQ_E8, COLOR_BLACK, PIECE_KING));
+    assert(has_piece_at(board, SQ_A8, COLOR_BLACK, PIECE_ROOK));
+    assert(has_castling_right(board.castling_rights, CASTLING_BLACK_QUEENSIDE));
+
+    // e8-c8 castling
+    Move move = make_castling(SQ_E8, SQ_C8);
+    make_move(board, move);
+
+    // King moved to c8
+    assert(!has_piece_at(board, SQ_E8, COLOR_BLACK, PIECE_KING));
+    assert(has_piece_at(board, SQ_C8, COLOR_BLACK, PIECE_KING));
+
+    // Rook moved to d8
+    assert(!has_piece_at(board, SQ_A8, COLOR_BLACK, PIECE_ROOK));
+    assert(has_piece_at(board, SQ_D8, COLOR_BLACK, PIECE_ROOK));
+
+    // Castling rights lost for black
+    assert(!has_castling_right(board.castling_rights, CASTLING_BLACK_KINGSIDE));
+    assert(!has_castling_right(board.castling_rights, CASTLING_BLACK_QUEENSIDE));
+
+    // Side to move changed
+    assert(board.side_to_move == COLOR_WHITE);
+
+    std::cout << "PASS" << std::endl;
+}
+
+// Test castling rights update when king moves
+void test_castling_rights_king_move() {
+    std::cout << "  Testing castling rights on king move... ";
+
+    // White king moves (not castling)
+    BoardState board = board_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1");
+
+    // Both castling rights available initially
+    assert(has_castling_right(board.castling_rights, CASTLING_WHITE_KINGSIDE));
+    assert(has_castling_right(board.castling_rights, CASTLING_WHITE_QUEENSIDE));
+
+    // King moves to e2 (not castling)
+    make_move(board, make_move(SQ_E1, SQ_E2));
+
+    // Both castling rights lost
+    assert(!has_castling_right(board.castling_rights, CASTLING_WHITE_KINGSIDE));
+    assert(!has_castling_right(board.castling_rights, CASTLING_WHITE_QUEENSIDE));
+
+    // Black castling rights unchanged
+    assert(has_castling_right(board.castling_rights, CASTLING_BLACK_KINGSIDE));
+    assert(has_castling_right(board.castling_rights, CASTLING_BLACK_QUEENSIDE));
+
+    std::cout << "PASS" << std::endl;
+}
+
+// Test castling rights update when rook moves
+void test_castling_rights_rook_move() {
+    std::cout << "  Testing castling rights on rook move... ";
+
+    // White h1 rook moves
+    BoardState board = board_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1");
+
+    // Both castling rights available initially
+    assert(has_castling_right(board.castling_rights, CASTLING_WHITE_KINGSIDE));
+    assert(has_castling_right(board.castling_rights, CASTLING_WHITE_QUEENSIDE));
+
+    // h1 rook moves to h2
+    make_move(board, make_move(SQ_H1, SQ_H2));
+
+    // Only kingside rights lost
+    assert(!has_castling_right(board.castling_rights, CASTLING_WHITE_KINGSIDE));
+    assert(has_castling_right(board.castling_rights, CASTLING_WHITE_QUEENSIDE));
+
+    // Reset and move a1 rook
+    board = board_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1");
+    make_move(board, make_move(SQ_A1, SQ_A2));
+
+    // Only queenside rights lost
+    assert(has_castling_right(board.castling_rights, CASTLING_WHITE_KINGSIDE));
+    assert(!has_castling_right(board.castling_rights, CASTLING_WHITE_QUEENSIDE));
+
+    std::cout << "PASS" << std::endl;
+}
+
+// Test castling rights update when rook is captured
+void test_castling_rights_rook_capture() {
+    std::cout << "  Testing castling rights on rook capture... ";
+
+    // Test 1: White captures Black's h8 rook, Black loses kingside rights
+    // FEN: Black has kingside rights (k), White has queenside rights (Q)
+    BoardState board = board_from_fen("4k2r/8/8/8/8/8/8/R3K3 w kQ - 0 1");
+
+    // Black kingside right available initially
+    assert(has_castling_right(board.castling_rights, CASTLING_BLACK_KINGSIDE));
+
+    // Rook captures h8 rook
+    make_move(board, make_capture(SQ_A1, SQ_H8));
+
+    // Black kingside rights lost
+    assert(!has_castling_right(board.castling_rights, CASTLING_BLACK_KINGSIDE));
+
+    // Test 2: Black captures White's a1 rook, White loses queenside rights
+    board = board_from_fen("r3k3/8/8/8/8/8/8/R3K2R b KQ - 0 1");
+    assert(has_castling_right(board.castling_rights, CASTLING_WHITE_KINGSIDE));
+    assert(has_castling_right(board.castling_rights, CASTLING_WHITE_QUEENSIDE));
+
+    // Black rook captures a1 rook
+    make_move(board, make_capture(SQ_A8, SQ_A1));
+
+    // White queenside rights lost (kingside still available)
+    assert(has_castling_right(board.castling_rights, CASTLING_WHITE_KINGSIDE));
+    assert(!has_castling_right(board.castling_rights, CASTLING_WHITE_QUEENSIDE));
+
+    std::cout << "PASS" << std::endl;
+}
+
+// Test en passant capture
+void test_en_passant_capture() {
+    std::cout << "  Testing en passant capture... ";
+
+    // White captures en passant
+    BoardState board = board_from_fen("rnbqkbnr/pppppppp/8/4P3/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1");
+
+    // Black double pawn push d7-d5
+    make_move(board, make_move(SQ_D7, SQ_D5));
+
+    // EP square should be set
+    assert(board.en_passant_square == SQ_D6);
+
+    // Verify pawns are in position
+    assert(has_piece_at(board, SQ_E5, COLOR_WHITE, PIECE_PAWN));
+    assert(has_piece_at(board, SQ_D5, COLOR_BLACK, PIECE_PAWN));
+
+    // White captures en passant: e5xd6
+    Move ep_move = make_en_passant(SQ_E5, SQ_D6);
+    make_move(board, ep_move);
+
+    // White pawn moved to d6
+    assert(!has_piece_at(board, SQ_E5, COLOR_WHITE, PIECE_PAWN));
+    assert(has_piece_at(board, SQ_D6, COLOR_WHITE, PIECE_PAWN));
+
+    // Black pawn on d5 was captured (removed)
+    assert(!has_piece_at(board, SQ_D5, COLOR_BLACK, PIECE_PAWN));
+
+    // EP square reset
+    assert(board.en_passant_square == SQUARE_NONE);
+
+    // Halfmove clock reset (capture)
+    assert(board.halfmove_clock == 0);
+
+    std::cout << "PASS" << std::endl;
+}
+
+// Test en passant capture by black
+void test_en_passant_capture_black() {
+    std::cout << "  Testing en passant capture by Black... ";
+
+    // Black captures en passant
+    // FEN: Black pawn on e4 (can capture g4 EP after g2-g4), White to move
+    BoardState board = board_from_fen("rnbqkbnr/pppp1ppp/8/8/4p3/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+    // White double pawn push g2-g4
+    make_move(board, make_move(SQ_G2, SQ_G4));
+
+    // EP square should be set
+    assert(board.en_passant_square == SQ_G3);
+
+    // Black captures en passant: e4xg3
+    Move ep_move = make_en_passant(SQ_E4, SQ_G3);
+    make_move(board, ep_move);
+
+    // Black pawn moved to g3
+    assert(!has_piece_at(board, SQ_E4, COLOR_BLACK, PIECE_PAWN));
+    assert(has_piece_at(board, SQ_G3, COLOR_BLACK, PIECE_PAWN));
+
+    // White pawn on g4 was captured (removed)
+    assert(!has_piece_at(board, SQ_G4, COLOR_WHITE, PIECE_PAWN));
+
+    std::cout << "PASS" << std::endl;
+}
+
+// Test promotion to queen
+void test_promotion_queen() {
+    std::cout << "  Testing promotion to queen... ";
+
+    // White pawn promotion
+    BoardState board = board_from_fen("8/P4k2/8/8/8/8/8/4K3 w - - 0 1");
+
+    // Verify initial state
+    assert(has_piece_at(board, SQ_A7, COLOR_WHITE, PIECE_PAWN));
+    assert(!has_piece_at(board, SQ_A8, COLOR_WHITE, PIECE_QUEEN));
+
+    // a7-a8=Q
+    Move move = make_promotion(SQ_A7, SQ_A8, PIECE_QUEEN);
+    make_move(board, move);
+
+    // Pawn is gone
+    assert(!has_piece_at(board, SQ_A7, COLOR_WHITE, PIECE_PAWN));
+
+    // Queen is on a8
+    assert(has_piece_at(board, SQ_A8, COLOR_WHITE, PIECE_QUEEN));
+
+    // Halfmove clock reset (pawn move)
+    assert(board.halfmove_clock == 0);
+
+    std::cout << "PASS" << std::endl;
+}
+
+// Test promotion to knight
+void test_promotion_knight() {
+    std::cout << "  Testing promotion to knight... ";
+
+    // Black pawn promotion
+    BoardState board = board_from_fen("8/8/8/8/8/8/4k3/4K2n b - - 0 1");
+
+    // h1-h2 with underpromotion to knight
+    // Actually, let's do a regular promotion
+    board = board_from_fen("4k3/4p3/8/8/8/8/8/4K3 b - - 0 1");
+    // Need a pawn about to promote, let's set up properly
+    board = board_from_fen("4k3/8/8/8/8/8/4p3/4K3 b - - 0 1");
+
+    // e2-e1=N
+    Move move = make_promotion(SQ_E2, SQ_E1, PIECE_KNIGHT);
+    make_move(board, move);
+
+    // Pawn is gone
+    assert(!has_piece_at(board, SQ_E2, COLOR_BLACK, PIECE_PAWN));
+
+    // Knight is on e1
+    assert(has_piece_at(board, SQ_E1, COLOR_BLACK, PIECE_KNIGHT));
+
+    std::cout << "PASS" << std::endl;
+}
+
+// Test promotion capture
+void test_promotion_capture() {
+    std::cout << "  Testing promotion capture... ";
+
+    // White pawn captures and promotes
+    BoardState board = board_from_fen("1r4k1/1P6/8/8/8/8/8/4K3 w - - 0 1");
+
+    // Verify initial state
+    assert(has_piece_at(board, SQ_B7, COLOR_WHITE, PIECE_PAWN));
+    assert(has_piece_at(board, SQ_B8, COLOR_BLACK, PIECE_ROOK));
+
+    // b7xa8=Q
+    Move move = make_promotion(SQ_B7, SQ_A8, PIECE_QUEEN, true);
+    make_move(board, move);
+
+    // Pawn is gone
+    assert(!has_piece_at(board, SQ_B7, COLOR_WHITE, PIECE_PAWN));
+
+    // Queen is on a8
+    assert(has_piece_at(board, SQ_A8, COLOR_WHITE, PIECE_QUEEN));
+
+    // Black rook was captured
+    assert(!has_piece_at(board, SQ_A8, COLOR_BLACK, PIECE_ROOK));
+
+    // Halfmove clock reset (capture)
+    assert(board.halfmove_clock == 0);
+
+    std::cout << "PASS" << std::endl;
+}
+
+// Test board validity after special moves
+void test_special_moves_validity() {
+    std::cout << "  Testing board validity after special moves... ";
+
+    BoardState board;
+
+    // Castling validity - kingside
+    board = board_from_fen("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1");
+    make_move(board, make_castling(SQ_E1, SQ_G1));
+    assert(board.is_valid());
+
+    // Castling validity - queenside
+    board = board_from_fen("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1");
+    make_move(board, make_castling(SQ_E1, SQ_C1));
+    assert(board.is_valid());
+
+    // En passant validity - White captures Black's pawn
+    // After Black d7-d5, White plays e5xd6 EP
+    board = board_from_fen("rnbqkbnr/pppppppp/8/4P3/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1");
+    make_move(board, make_move(SQ_D7, SQ_D5));  // Black pushes d-pawn
+    // Now White's turn, EP square is d6
+    assert(board.en_passant_square == SQ_D6);
+    make_move(board, make_en_passant(SQ_E5, SQ_D6));  // White captures EP
+    assert(board.is_valid());
+
+    // Promotion validity
+    board = board_from_fen("8/P4k2/8/8/8/8/8/4K3 w - - 0 1");
+    make_move(board, make_promotion(SQ_A7, SQ_A8, PIECE_QUEEN));
+    assert(board.is_valid());
+
+    std::cout << "PASS" << std::endl;
+}
+
 int main() {
     std::cout << "Running make_move tests..." << std::endl;
 
+    // S03-F01: Basic moves
     test_quiet_pawn_push();
     test_quiet_piece_move();
     test_simple_capture();
@@ -334,6 +672,19 @@ int main() {
     test_major_piece_capture();
     test_halfmove_clock();
     test_board_validity();
+
+    // S03-F02: Special moves
+    test_kingside_castling();
+    test_queenside_castling();
+    test_castling_rights_king_move();
+    test_castling_rights_rook_move();
+    test_castling_rights_rook_capture();
+    test_en_passant_capture();
+    test_en_passant_capture_black();
+    test_promotion_queen();
+    test_promotion_knight();
+    test_promotion_capture();
+    test_special_moves_validity();
 
     std::cout << "All make_move tests passed!" << std::endl;
     return 0;
