@@ -62,7 +62,7 @@ Reason selected: the control loop needed an explicit provider/model ID and a fix
 Files changed: opencode.json, scripts/opencode-loop.sh
 Tests run: ./scripts/verify.sh
 Perft status: not applicable
-Git checkpoint: pending
+Git checkpoint: 157a8fa checkpoint(meta): pin opencode model and loop config
 Result: success
 Known risks:
 - local `opencode models` inspection is currently failing on an OpenCode database checkpoint issue, so the configured model string still needs one live run confirmation inside OpenCode
