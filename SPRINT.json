@@ -71,7 +71,7 @@
       "All 64 squares map deterministically to bit positions",
       "String conversion helpers are covered by tests"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S01-F06",
@@ -85,7 +85,7 @@
       "Piece and color values are explicit and test-covered",
       "Castling rights can represent all legal combinations"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S01-F07",

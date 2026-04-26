@@ -11,6 +11,7 @@ include(CTest)
 add_library(thinmint_core
   src/core/version.cpp
   src/core/square.cpp
+  src/core/piece.cpp
 )
 
 target_include_directories(thinmint_core
@@ -48,4 +49,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_square_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_square_test COMMAND thinmint_square_test)
+
+  add_executable(thinmint_piece_test
+    tests/unit/piece_test.cpp
+  )
+
+  target_link_libraries(thinmint_piece_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_piece_test COMMAND thinmint_piece_test)
 endif()

@@ -69,6 +69,22 @@ Known risks:
 - if OpenRouter expects a newer Kimi slug in your account, the first run will fail fast at model selection and should be corrected from the exact provider/model ID OpenCode shows
 Next suggested feature: run one single OpenCode iteration and confirm the active model/provider from the startup output
 
+## 2026-04-26 02:45
+Sprint: sprint-01
+Feature: S01-F06
+Title: Define color, piece, and castling-rights representations
+Reason selected: highest-priority incomplete item with satisfied dependencies (S01-F05 complete)
+Files changed: include/thinmint/core/piece.h, src/core/piece.cpp, tests/unit/piece_test.cpp, CMakeLists.txt
+Tests run: ./scripts/verify.sh (3/3 tests passed)
+Perft status: not applicable (no move generation yet)
+Git checkpoint: pending
+Result: success
+Known risks:
+- Piece encoding assumes color fits in 1 bit and type in 3 bits (0-6)
+- Castling rights bit flags must be consistent with FEN parsing
+- Dependency on square.h for castling rook square function introduces coupling
+Next suggested feature: S01-F07 - Implement bitboard helper primitives
+
 ## 2026-04-25 00:30
 Sprint: sprint-01
 Feature: S01-F05
