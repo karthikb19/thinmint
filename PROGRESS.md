@@ -2,6 +2,26 @@
 
 Append one entry per iteration.
 
+## 2026-04-26 19:45
+Sprint: sprint-02
+Feature: S02-F07
+Title: Implement pin handling and legal move filtering
+Reason selected: highest-priority incomplete item with satisfied dependencies (S02-F04, F05, F06 complete)
+Files changed: src/movegen/movegen.cpp, tests/unit/legal_movegen_test.cpp
+Tests run: ./scripts/verify.sh (14/14 tests passed)
+Perft status: not applicable (legal move filtering, not full perft yet)
+Git checkpoint: pending
+Result: success
+Known risks:
+- King adjacency check added to prevent kings from moving adjacent to each other
+- Pin detection uses ray tracing from king through piece to find enemy sliders
+- Check evasion logic handles single check (capture/block/king move) and double check (king move only)
+- EP discovered check validation creates temp board to test move legality
+- Some existing tests had incorrect FEN positions or impossible scenarios - fixed those
+- Legal move filtering validates king moves by checking: (1) not adjacent to enemy king, (2) destination not attacked
+- Pinned pieces can only move along the pin ray (including capturing the pinning piece)
+Next suggested feature: S02-F08 - Add perft runner and baseline perft fixtures
+
 ## 2026-04-26 18:45
 Sprint: sprint-02
 Feature: S02-F06

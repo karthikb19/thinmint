@@ -88,4 +88,24 @@ size_t generate_captures(const thinmint::board::BoardState& board, MoveList& mov
 // Includes promotion pushes (these are technically non-captures)
 size_t generate_quiet_moves(const thinmint::board::BoardState& board, MoveList& moves);
 
+// Generate all LEGAL moves for the current side to move
+// This filters pseudo-legal moves to ensure the king is never left in check
+// Handles:
+// - Pinned pieces that cannot move off the pin ray
+// - Check evasions (king moves, captures of checking piece, blocking sliding checks)
+// - Double check (only king moves allowed)
+// - En passant that would reveal a check (discovered check via EP capture)
+//
+// This is the function to use for actual game play and search
+size_t generate_legal_moves(const thinmint::board::BoardState& board, MoveList& moves);
+
+// Check if a specific pseudo-legal move is legal
+// This is useful for UCI move validation when receiving moves from GUI
+// Returns true if the move does not leave the king in check
+bool is_move_legal(const thinmint::board::BoardState& board, thinmint::core::Move move);
+
+// Get checkers bitboard - all pieces giving check to the king of the given color
+// Returns a bitboard with all checking pieces (0, 1, or 2+ pieces)
+thinmint::core::Bitboard get_checkers(const thinmint::board::BoardState& board, thinmint::core::Color king_color);
+
 }  // namespace thinmint::movegen

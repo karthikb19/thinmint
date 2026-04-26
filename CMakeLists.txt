@@ -142,4 +142,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_castling_ep_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_castling_ep_test COMMAND thinmint_castling_ep_test)
+
+  add_executable(thinmint_legal_movegen_test
+    tests/unit/legal_movegen_test.cpp
+  )
+
+  target_link_libraries(thinmint_legal_movegen_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_legal_movegen_test COMMAND thinmint_legal_movegen_test)
 endif()

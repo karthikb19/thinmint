@@ -98,7 +98,7 @@
       "Check evasions are limited to legal responses",
       "Legal move lists contain no king-exposing moves"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S02-F08",
