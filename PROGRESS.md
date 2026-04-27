@@ -2,6 +2,23 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 16:00
+Sprint: sprint-04
+Feature: S04-F10
+Title: Add search regression suite and no-regression gates
+Reason selected: next Sprint 04 feature after S04-F09; dependencies S04-F01, S04-F03, S04-F05, and S04-F08 satisfied
+Files changed: README.md, SPRINT.04.strength-stability.json, PROGRESS.md
+Tests run: ./scripts/verify.sh (25/25 tests passed, total test time 0.22s)
+Perft status: perft regression test remains part of verification and passed
+Git checkpoint: pending
+Result: success
+Known risks:
+- Existing tactical regression tests are automated in CTest as `thinmint_tactical_regression_test`.
+- Existing perft tests remain part of the same verification command as `thinmint_perft_test`.
+- README now calls out `./scripts/verify.sh` as the no-regression gate for perft and tactical/search regressions.
+- No new tactical positions were added in this pass because the suite already covered the S04-F10 acceptance criteria.
+Next suggested feature: S04-F11 - Add basic time management for UCI go commands
+
 ## 2026-04-27 15:30
 Sprint: sprint-04
 Feature: S04-F09

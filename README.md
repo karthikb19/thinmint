@@ -33,6 +33,9 @@ ctest --test-dir build --output-on-failure
 ./scripts/verify.sh
 ```
 
+This is the no-regression gate. It configures, builds, and runs the complete
+CTest suite, including perft validation and tactical/search regression tests.
+
 ## Benchmark
 
 Run a fixed search benchmark after building:

@@ -143,7 +143,7 @@
       "Perft suite reruns remain part of verification",
       "Search regressions are detectable through one command"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S04-F11",
