@@ -2,6 +2,23 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 14:00
+Sprint: sprint-04
+Feature: S04-F06
+Title: Implement phased and tapered evaluation framework
+Reason selected: next Sprint 04 feature; no dependencies
+Files changed: include/thinmint/eval/eval.h, src/eval/eval.cpp, tests/unit/eval_test.cpp, SPRINT.04.strength-stability.json, PROGRESS.md
+Tests run: ./scripts/verify.sh (25/25 tests passed, total test time 1.94s)
+Perft status: perft regression test remains part of verification and passed
+Git checkpoint: pending
+Result: success
+Known risks:
+- Added opening/endgame material values, opening/endgame PST accessors, and explicit EvalComponents.
+- evaluate() now uses tapered interpolation by phase, while existing opening-oriented evaluate_material/evaluate_position defaults remain stable.
+- Phase is based on standard non-pawn material weights with MAX_PHASE = 24.
+- Added tests for endgame PST access, endgame king activity, phase boundaries, score interpolation, and side-to-move perspective flipping.
+Next suggested feature: S04-F07 - Add core positional evaluation features
+
 ## 2026-04-27 13:30
 Sprint: sprint-04
 Feature: S04-F05

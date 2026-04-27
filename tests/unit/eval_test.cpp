@@ -96,6 +96,17 @@ int test_pst_access() {
     return 0;
 }
 
+int test_endgame_pst_access() {
+    TEST_ASSERT(get_pst(PIECE_PAWN, EvalPhase::ENDGAME) == PAWN_ENDGAME_PST, "Pawn endgame PST access");
+    TEST_ASSERT(get_pst(PIECE_KNIGHT, EvalPhase::ENDGAME) == KNIGHT_ENDGAME_PST, "Knight endgame PST access");
+    TEST_ASSERT(get_pst(PIECE_BISHOP, EvalPhase::ENDGAME) == BISHOP_ENDGAME_PST, "Bishop endgame PST access");
+    TEST_ASSERT(get_pst(PIECE_ROOK, EvalPhase::ENDGAME) == ROOK_ENDGAME_PST, "Rook endgame PST access");
+    TEST_ASSERT(get_pst(PIECE_QUEEN, EvalPhase::ENDGAME) == QUEEN_ENDGAME_PST, "Queen endgame PST access");
+    TEST_ASSERT(get_pst(PIECE_KING, EvalPhase::ENDGAME) == KING_ENDGAME_PST, "King endgame PST access");
+
+    return 0;
+}
+
 // Test piece-square evaluation for central squares
 int test_piece_square_center() {
     // Knight in center (d4 = square 27) should have good score
@@ -194,6 +205,17 @@ int test_king_safety() {
     return 0;
 }
 
+int test_endgame_king_activity() {
+    int center_king = evaluate_piece_position(SQUARE_D4, PIECE_KING, true, EvalPhase::ENDGAME);
+    int corner_king = evaluate_piece_position(SQUARE_A1, PIECE_KING, true, EvalPhase::ENDGAME);
+    TEST_ASSERT(center_king > corner_king, "Endgame king should prefer central squares");
+
+    int opening_center_king = evaluate_piece_position(SQUARE_D4, PIECE_KING, true, EvalPhase::OPENING);
+    TEST_ASSERT(center_king > opening_center_king, "Endgame king centralization differs from opening safety");
+
+    return 0;
+}
+
 // Test game phase detection
 int test_game_phase() {
     // Start position should be full middlegame
@@ -213,6 +235,35 @@ int test_game_phase() {
     bare.parse_fen("4k3/8/8/8/8/8/8/4K3 w - - 0 1");
     double bare_phase = game_phase(bare);
     TEST_ASSERT(bare_phase == 0.0, "Bare kings should be phase 0");
+
+    return 0;
+}
+
+int test_tapered_components() {
+    BoardState start;
+    start.reset_to_start_position();
+    EvalComponents start_eval = evaluate_components(start);
+
+    TEST_ASSERT(start_eval.phase == MAX_PHASE, "Start position should have full opening phase");
+    TEST_ASSERT(start_eval.score == start_eval.opening, "Full phase uses opening score");
+
+    BoardState bare;
+    bare.parse_fen("4k3/8/8/8/8/8/8/4K3 w - - 0 1");
+    EvalComponents bare_eval = evaluate_components(bare);
+
+    TEST_ASSERT(bare_eval.phase == 0, "Bare kings should have endgame phase");
+    TEST_ASSERT(bare_eval.score == bare_eval.endgame, "Zero phase uses endgame score");
+
+    BoardState mixed;
+    mixed.parse_fen("4k3/8/8/8/3N4/8/8/4K2R w - - 0 1");
+    EvalComponents mixed_eval = evaluate_components(mixed);
+    int expected = ((mixed_eval.opening * mixed_eval.phase) +
+                    (mixed_eval.endgame * (MAX_PHASE - mixed_eval.phase))) / MAX_PHASE;
+    TEST_ASSERT(mixed_eval.score == expected, "Tapered score interpolates opening and endgame");
+
+    mixed.side_to_move = COLOR_BLACK;
+    EvalComponents flipped = evaluate_components(mixed);
+    TEST_ASSERT(flipped.score == -mixed_eval.score, "Tapered score flips with side to move");
 
     return 0;
 }
@@ -260,12 +311,15 @@ int main() {
     RUN_TEST(test_equal_material);
     RUN_TEST(test_material_imbalance);
     RUN_TEST(test_pst_access);
+    RUN_TEST(test_endgame_pst_access);
     RUN_TEST(test_piece_square_center);
     RUN_TEST(test_evaluate_perspective);
     RUN_TEST(test_evaluate_flips_with_side);
     RUN_TEST(test_positional_factors);
     RUN_TEST(test_king_safety);
+    RUN_TEST(test_endgame_king_activity);
     RUN_TEST(test_game_phase);
+    RUN_TEST(test_tapered_components);
     RUN_TEST(test_evaluation_determinism);
     RUN_TEST(test_known_positions);
 

@@ -23,6 +23,19 @@ inline constexpr int BISHOP_VALUE = 330;
 inline constexpr int ROOK_VALUE = 500;
 inline constexpr int QUEEN_VALUE = 900;
 inline constexpr int KING_VALUE = 20000;  // Arbitrary high value, king is priceless
+inline constexpr int MAX_PHASE = 24;
+
+enum class EvalPhase {
+    OPENING,
+    ENDGAME
+};
+
+struct EvalComponents {
+    int opening;
+    int endgame;
+    int phase;
+    int score;
+};
 
 // Get material value for a piece type
 inline constexpr int piece_value(PieceType pt) {
@@ -31,6 +44,18 @@ inline constexpr int piece_value(PieceType pt) {
         case PIECE_KNIGHT: return KNIGHT_VALUE;
         case PIECE_BISHOP: return BISHOP_VALUE;
         case PIECE_ROOK:   return ROOK_VALUE;
+        case PIECE_QUEEN:  return QUEEN_VALUE;
+        case PIECE_KING:   return KING_VALUE;
+        default:           return 0;
+    }
+}
+
+inline constexpr int piece_value(PieceType pt, EvalPhase phase) {
+    switch (pt) {
+        case PIECE_PAWN:   return PAWN_VALUE;
+        case PIECE_KNIGHT: return phase == EvalPhase::OPENING ? KNIGHT_VALUE : 300;
+        case PIECE_BISHOP: return phase == EvalPhase::OPENING ? BISHOP_VALUE : 340;
+        case PIECE_ROOK:   return phase == EvalPhase::OPENING ? ROOK_VALUE : 520;
         case PIECE_QUEEN:  return QUEEN_VALUE;
         case PIECE_KING:   return KING_VALUE;
         default:           return 0;
@@ -65,22 +90,37 @@ extern const int QUEEN_PST[64];
 // Encourages: castling, king safety
 extern const int KING_PST[64];
 
+extern const int PAWN_ENDGAME_PST[64];
+extern const int KNIGHT_ENDGAME_PST[64];
+extern const int BISHOP_ENDGAME_PST[64];
+extern const int ROOK_ENDGAME_PST[64];
+extern const int QUEEN_ENDGAME_PST[64];
+extern const int KING_ENDGAME_PST[64];
+
 // Get piece-square table for a piece type
 const int* get_pst(PieceType pt);
+const int* get_pst(PieceType pt, EvalPhase phase);
 
 // Evaluate a single piece's position using PST
 // sq: square where piece is located (from White's perspective)
 // pt: piece type
 // is_white: true if White piece, false if Black (Black's PST is mirrored)
 int evaluate_piece_position(Square sq, PieceType pt, bool is_white);
+int evaluate_piece_position(Square sq, PieceType pt, bool is_white, EvalPhase phase);
 
 // Calculate material balance for a position
 // Returns (White material - Black material) in centipawns
 int evaluate_material(const BoardState& board);
+int evaluate_material(const BoardState& board, EvalPhase phase);
 
 // Calculate positional score using piece-square tables
 // Returns (White positional - Black positional) in centipawns
 int evaluate_position(const BoardState& board);
+int evaluate_position(const BoardState& board, EvalPhase phase);
+
+// Calculate opening/endgame components and tapered final score.
+// All component scores are returned from side-to-move perspective.
+EvalComponents evaluate_components(const BoardState& board);
 
 // Full static evaluation of a position
 // Returns score from the perspective of side_to_move

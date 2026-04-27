@@ -84,7 +84,7 @@
       "Final score uses tapered interpolation by game phase",
       "Material and piece-square tables are represented in both phases"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S04-F07",
