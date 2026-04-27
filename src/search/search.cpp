@@ -21,6 +21,7 @@ inline constexpr int KILLER_SLOTS = 2;
 inline constexpr int HISTORY_COLOR_COUNT = 2;
 inline constexpr int SQUARE_COUNT = 64;
 inline constexpr size_t TRANSPOSITION_TABLE_SIZE = 1 << 16;
+inline constexpr size_t MAX_SEARCH_PATH = MAX_DEPTH + MAX_QUIESCENCE_PLY + 8;
 
 enum class TTBound : uint8_t {
     NONE,
@@ -51,6 +52,8 @@ struct SearchHeuristics {
     std::array<std::array<Move, KILLER_SLOTS>, MAX_DEPTH> killers{};
     std::array<std::array<std::array<int, SQUARE_COUNT>, SQUARE_COUNT>, HISTORY_COLOR_COUNT> history{};
     std::array<TTEntry, TRANSPOSITION_TABLE_SIZE> tt{};
+    std::array<uint64_t, MAX_SEARCH_PATH> path_keys{};
+    size_t path_count = 0;
 };
 
 int search_ply(const SearchStats& stats) {
@@ -67,6 +70,10 @@ int heuristic_ply(const SearchStats& stats) {
 
 bool is_tactical_move(Move move) {
     return is_capture(move) || is_en_passant(move) || is_promotion(move);
+}
+
+bool is_fifty_move_draw_internal(const BoardState& board) {
+    return board.halfmove_clock >= 100;
 }
 
 uint64_t mix_key(uint64_t value) {
@@ -100,6 +107,34 @@ uint64_t position_key(const BoardState& board) {
 
     return key;
 }
+
+int repetition_count(const SearchHeuristics& heuristics, uint64_t key) {
+    int count = 0;
+    for (size_t i = 0; i < heuristics.path_count; ++i) {
+        if (heuristics.path_keys[i] == key) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+struct PathGuard {
+    SearchHeuristics& heuristics;
+    bool pushed = false;
+
+    PathGuard(SearchHeuristics& h, uint64_t key) : heuristics(h) {
+        if (heuristics.path_count < heuristics.path_keys.size()) {
+            heuristics.path_keys[heuristics.path_count++] = key;
+            pushed = true;
+        }
+    }
+
+    ~PathGuard() {
+        if (pushed) {
+            --heuristics.path_count;
+        }
+    }
+};
 
 bool is_killer_move(const SearchHeuristics& heuristics, int ply, Move move) {
     const auto& killers = heuristics.killers[ply];
@@ -267,6 +302,14 @@ bool is_mate_score(int score) {
     return std::abs(score) >= MATE_THRESHOLD;
 }
 
+bool is_fifty_move_draw(const BoardState& board) {
+    return is_fifty_move_draw_internal(board);
+}
+
+bool is_repetition_equivalent(const BoardState& a, const BoardState& b) {
+    return position_key(a) == position_key(b);
+}
+
 int score_to_mate_in(int score) {
     if (!is_mate_score(score)) {
         return 0;
@@ -290,6 +333,13 @@ int negamax_impl(BoardState& board,
     const int original_alpha = alpha;
     const int original_beta = beta;
     uint64_t key = position_key(board);
+
+    if (is_fifty_move_draw_internal(board) || repetition_count(heuristics, key) > 0) {
+        stats.leaf_nodes++;
+        return 0;
+    }
+
+    PathGuard path_guard(heuristics, key);
 
     // Terminal node check
     MoveList moves;
@@ -384,6 +434,14 @@ SearchResult search_root(BoardState& board, int depth) {
 
     result.depth = depth;
     stats.current_max_depth = depth;
+    uint64_t key = position_key(board);
+
+    if (is_fifty_move_draw_internal(board)) {
+        result.score = 0;
+        result.nodes = 1;
+        result.best_move = MOVE_NONE;
+        return result;
+    }
 
     // Generate all legal moves
     MoveList moves;
@@ -410,7 +468,7 @@ SearchResult search_root(BoardState& board, int depth) {
     int alpha = -INF_SCORE;
     int beta = INF_SCORE;
     SearchHeuristics heuristics;
-    uint64_t key = position_key(board);
+    PathGuard root_path(heuristics, key);
 
     bool searched_first_move = false;
     OrderedMoves ordered = order_moves(board, moves, &heuristics, 0, tt_best_move(heuristics, key));
@@ -466,6 +524,11 @@ SearchResult search_root(BoardState& board, int depth) {
 
 int quiescence(BoardState& board, int alpha, int beta, SearchStats& stats) {
     stats.nodes_searched++;
+
+    if (is_fifty_move_draw_internal(board)) {
+        stats.leaf_nodes++;
+        return 0;
+    }
 
     const bool in_check = board.is_check(board.side_to_move);
     const int q_ply = search_ply(stats) - stats.current_max_depth;

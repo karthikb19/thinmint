@@ -2,6 +2,24 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 15:00
+Sprint: sprint-04
+Feature: S04-F08
+Title: Add repetition and fifty-move draw handling
+Reason selected: next Sprint 04 feature after S04-F07; dependency S04-F05 satisfied
+Files changed: include/thinmint/search/search.h, src/search/search.cpp, tests/unit/search_test.cpp, SPRINT.04.strength-stability.json, PROGRESS.md
+Tests run: ./scripts/verify.sh (25/25 tests passed, total test time 2.11s)
+Perft status: perft regression test remains part of verification and passed
+Git checkpoint: pending
+Result: success
+Known risks:
+- Search now scores halfmove_clock >= 100 positions as draws.
+- Search keeps a per-search path key stack and scores repeated positions along the current line as draws.
+- Added public helpers for fifty-move draw recognition and repetition-equivalent position comparison.
+- Repetition equivalence includes pieces, side to move, castling rights, and en passant square, and intentionally ignores move counters.
+- Full game-history repetition tracking outside the current search path is still not represented on BoardState.
+Next suggested feature: S04-F09 - Add node counting and benchmarking support
+
 ## 2026-04-27 14:30
 Sprint: sprint-04
 Feature: S04-F07

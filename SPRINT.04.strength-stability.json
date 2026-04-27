@@ -114,7 +114,7 @@
       "Repetition detection is tested",
       "Fifty-move rule handling is tested"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S04-F09",

@@ -112,6 +112,10 @@ int get_terminal_score(const BoardState& board, int ply);
 // Check if the score represents a mate
 bool is_mate_score(int score);
 
+// Draw helpers used by search.
+bool is_fifty_move_draw(const BoardState& board);
+bool is_repetition_equivalent(const BoardState& a, const BoardState& b);
+
 // Convert mate score to "mate in N" plies
 // Positive = side to move mates in N
 // Negative = side to move is mated in N

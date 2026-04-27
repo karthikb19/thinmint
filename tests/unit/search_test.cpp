@@ -249,6 +249,30 @@ void test_limited_material() {
     check(result.best_move != MOVE_NONE, "KP vs K finds move");
 }
 
+void test_fifty_move_draw_handling() {
+    std::cout << "\nTest: Fifty-move draw handling" << std::endl;
+
+    BoardState board = board_from_fen("4k3/8/8/8/8/8/4Q3/4K3 w - - 100 1");
+    SearchResult result = search_root(board, 3);
+
+    check(is_fifty_move_draw(board), "Fifty-move helper recognizes draw");
+    check(result.score == 0, "Search scores fifty-move position as draw");
+    check(result.best_move == MOVE_NONE, "Drawn root returns no best move");
+}
+
+void test_repetition_equivalence() {
+    std::cout << "\nTest: Repetition equivalence" << std::endl;
+
+    BoardState a = board_from_fen("4k3/8/8/8/8/8/8/4K2R w K - 0 1");
+    BoardState same = board_from_fen("4k3/8/8/8/8/8/8/4K2R w K - 12 8");
+    BoardState different_side = board_from_fen("4k3/8/8/8/8/8/8/4K2R b K - 0 1");
+    BoardState different_rights = board_from_fen("4k3/8/8/8/8/8/8/4K2R w - - 0 1");
+
+    check(is_repetition_equivalent(a, same), "Equivalent positions ignore move counters");
+    check(!is_repetition_equivalent(a, different_side), "Side to move affects repetition equivalence");
+    check(!is_repetition_equivalent(a, different_rights), "Castling rights affect repetition equivalence");
+}
+
 // Test basic quiescence search functionality
 void test_quiescence_basic() {
     std::cout << "\nTest: Quiescence search basic" << std::endl;
@@ -356,6 +380,8 @@ int main() {
     test_repeated_searches();
     test_negamax_scores();
     test_limited_material();
+    test_fifty_move_draw_handling();
+    test_repetition_equivalence();
     test_quiescence_basic();
     test_quiescence_finds_winning_capture();
     test_quiescence_capture_sequence();
