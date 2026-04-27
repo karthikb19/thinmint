@@ -236,4 +236,12 @@ if(BUILD_TESTING)
   target_link_libraries(thinmint_uci_go_test PRIVATE thinmint_core)
 
   add_test(NAME thinmint_uci_go_test COMMAND thinmint_uci_go_test)
+
+  add_executable(thinmint_tactical_regression_test
+    tests/unit/tactical_regression_test.cpp
+  )
+
+  target_link_libraries(thinmint_tactical_regression_test PRIVATE thinmint_core)
+
+  add_test(NAME thinmint_tactical_regression_test COMMAND thinmint_tactical_regression_test)
 endif()

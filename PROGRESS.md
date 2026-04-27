@@ -2,6 +2,28 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 10:30
+Sprint: sprint-03
+Feature: S03-F10
+Title: Add tactical and mate regression tests for the baseline search
+Reason selected: highest-priority incomplete feature with satisfied dependencies (S03-F09 complete)
+Files changed: tests/unit/tactical_regression_test.cpp, CMakeLists.txt, SPRINT.03.uci-search.json
+Tests run: ./scripts/verify.sh (25/25 tests passed)
+Perft status: all fixtures pass at depths 0-4 (unchanged from before, no regression)
+Git checkpoint: pending
+Result: success
+Known risks:
+- 13 test functions covering: mate-in-one patterns (4), tactical captures (3), bestmove legality validation
+- Mate tests cover: back-rank mate, corner mate, promotion mate, queen delivery mate
+- Tactical capture tests verify: queen capture by pawn, hanging rook capture, capturing most valuable piece
+- Regression positions include: start position, Kiwipete, open position, endgame, pinned position, check position
+- All bestmoves in regression positions are verified legal by checking against generated legal moves
+- Search correctly finds check evasions and handles positions in check
+- Score-based validations confirm tactical awareness (positive scores for winning captures)
+- Sprint 03 now complete - all 10 features passing
+- Ready to proceed to Sprint 04 (Search Quality, Speed, and Reliability)
+Next suggested feature: Sprint 04 begins - quiescence search and move ordering
+
 ## 2026-04-27 09:30
 Sprint: sprint-03
 Feature: S03-F09

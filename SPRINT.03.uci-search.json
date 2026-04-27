@@ -144,6 +144,6 @@
       "Simple tactical capture preference tests pass",
       "Bestmove output is legal in all regression positions"
     ],
-    "passes": false
+    "passes": true
   }
 ]
