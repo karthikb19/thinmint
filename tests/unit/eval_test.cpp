@@ -160,8 +160,7 @@ int test_evaluate_flips_with_side() {
     // Should be negative from Black's perspective (they're down a queen)
     TEST_ASSERT(black_to_move < -800, "White up queen, Black to move should be highly negative");
 
-    // They should be opposites
-    TEST_ASSERT(white_to_move == -black_to_move, "Evaluation should flip sign with side to move");
+    TEST_ASSERT(white_to_move > -black_to_move, "Side to move receives a tempo bonus");
 
     return 0;
 }
@@ -263,7 +262,58 @@ int test_tapered_components() {
 
     mixed.side_to_move = COLOR_BLACK;
     EvalComponents flipped = evaluate_components(mixed);
-    TEST_ASSERT(flipped.score == -mixed_eval.score, "Tapered score flips with side to move");
+    TEST_ASSERT(flipped.score < 0, "Tapered score changes perspective with side to move");
+
+    return 0;
+}
+
+int test_pawn_structure_terms() {
+    BoardState doubled;
+    doubled.parse_fen("4k3/8/8/8/8/P7/P7/4K3 w - - 0 1");
+
+    BoardState passed;
+    passed.parse_fen("4k3/8/8/4P3/8/8/8/4K3 w - - 0 1");
+
+    TEST_ASSERT(evaluate_pawn_structure(passed) > evaluate_pawn_structure(doubled),
+                "Passed pawn structure should beat doubled isolated pawns");
+
+    return 0;
+}
+
+int test_mobility_and_center_terms() {
+    BoardState active;
+    active.parse_fen("4k3/8/8/8/3Q4/8/8/4K3 w - - 0 1");
+
+    BoardState passive;
+    passive.parse_fen("4k3/8/8/8/8/8/8/Q3K3 w - - 0 1");
+
+    TEST_ASSERT(evaluate_mobility(active) > evaluate_mobility(passive),
+                "Central queen should have more mobility than corner queen");
+    TEST_ASSERT(evaluate_center_control(active) > evaluate_center_control(passive),
+                "Central queen should control more center squares");
+
+    return 0;
+}
+
+int test_king_safety_space_and_tempo_terms() {
+    BoardState shielded;
+    shielded.parse_fen("4k3/8/8/8/8/8/5PPP/6K1 w - - 0 1");
+
+    BoardState exposed;
+    exposed.parse_fen("4k3/8/8/8/8/8/8/6K1 w - - 0 1");
+
+    TEST_ASSERT(evaluate_king_safety(shielded) > evaluate_king_safety(exposed),
+                "Pawn shield should improve king safety");
+
+    BoardState space;
+    space.parse_fen("4k3/8/8/PPPP4/8/8/8/4K3 w - - 0 1");
+    TEST_ASSERT(evaluate_space(space) > 0, "Advanced white pieces should gain space");
+
+    BoardState tempo;
+    tempo.parse_fen("4k3/8/8/8/8/8/8/4K3 w - - 0 1");
+    TEST_ASSERT(evaluate_tempo(tempo) > 0, "White to move gets positive tempo from White perspective");
+    tempo.side_to_move = COLOR_BLACK;
+    TEST_ASSERT(evaluate_tempo(tempo) < 0, "Black to move gets negative tempo from White perspective");
 
     return 0;
 }
@@ -320,6 +370,9 @@ int main() {
     RUN_TEST(test_endgame_king_activity);
     RUN_TEST(test_game_phase);
     RUN_TEST(test_tapered_components);
+    RUN_TEST(test_pawn_structure_terms);
+    RUN_TEST(test_mobility_and_center_terms);
+    RUN_TEST(test_king_safety_space_and_tempo_terms);
     RUN_TEST(test_evaluation_determinism);
     RUN_TEST(test_known_positions);
 

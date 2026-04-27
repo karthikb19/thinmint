@@ -122,6 +122,15 @@ int evaluate_position(const BoardState& board, EvalPhase phase);
 // All component scores are returned from side-to-move perspective.
 EvalComponents evaluate_components(const BoardState& board);
 
+// Additional positional terms, returned from White's perspective.
+int evaluate_pawn_structure(const BoardState& board);
+int evaluate_mobility(const BoardState& board);
+int evaluate_center_control(const BoardState& board);
+int evaluate_king_safety(const BoardState& board);
+int evaluate_space(const BoardState& board);
+int evaluate_tempo(const BoardState& board);
+int evaluate_positional_terms(const BoardState& board);
+
 // Full static evaluation of a position
 // Returns score from the perspective of side_to_move
 // Positive = good for side to move, Negative = bad for side to move

@@ -3,7 +3,68 @@
 #include <algorithm>
 #include <cmath>
 
+#include "thinmint/movegen/attacks.h"
+
 namespace thinmint::eval {
+
+using namespace thinmint::movegen;
+
+namespace {
+
+inline constexpr Bitboard CENTER_SQUARES =
+    BB_SQUARE_D4 | BB_SQUARE_E4 | BB_SQUARE_D5 | BB_SQUARE_E5;
+inline constexpr Bitboard WHITE_SPACE_AREA = BB_RANK_5 | BB_RANK_6 | BB_RANK_7;
+inline constexpr Bitboard BLACK_SPACE_AREA = BB_RANK_2 | BB_RANK_3 | BB_RANK_4;
+
+int sign_for(Color color) {
+    return color == COLOR_WHITE ? 1 : -1;
+}
+
+Bitboard adjacent_files(File file) {
+    Bitboard files = BB_EMPTY;
+    if (file > FILE_A) {
+        files |= BB_FILE[file - 1];
+    }
+    if (file < FILE_H) {
+        files |= BB_FILE[file + 1];
+    }
+    return files;
+}
+
+Bitboard forward_ranks(Rank rank, Color color) {
+    Bitboard ranks = BB_EMPTY;
+    if (color == COLOR_WHITE) {
+        for (int r = static_cast<int>(rank) + 1; r <= RANK_8; ++r) {
+            ranks |= BB_RANK[r];
+        }
+    } else {
+        for (int r = static_cast<int>(rank) - 1; r >= RANK_1; --r) {
+            ranks |= BB_RANK[r];
+        }
+    }
+    return ranks;
+}
+
+Bitboard attacks_for_piece(const BoardState& board, Square sq, PieceType pt, Color color) {
+    switch (pt) {
+        case PIECE_PAWN:
+            return pawn_attacks(sq, color);
+        case PIECE_KNIGHT:
+            return knight_attacks(sq);
+        case PIECE_BISHOP:
+            return bishop_attacks(sq, board.all_occupancy);
+        case PIECE_ROOK:
+            return rook_attacks(sq, board.all_occupancy);
+        case PIECE_QUEEN:
+            return queen_attacks(sq, board.all_occupancy);
+        case PIECE_KING:
+            return king_attacks(sq);
+        default:
+            return BB_EMPTY;
+    }
+}
+
+}  // namespace
 
 // Piece-square tables
 // Values tuned for typical chess engine behavior
@@ -256,11 +317,149 @@ int phase_score(const BoardState& board) {
     return std::clamp(phase, 0, MAX_PHASE);
 }
 
+int evaluate_pawn_structure(const BoardState& board) {
+    int score = 0;
+
+    for (Color color : {COLOR_WHITE, COLOR_BLACK}) {
+        Bitboard pawns = board.pieces_of(color, PIECE_PAWN);
+        Bitboard enemy_pawns = board.pieces_of(!color, PIECE_PAWN);
+        int color_score = 0;
+
+        for (int file = FILE_A; file <= FILE_H; ++file) {
+            int count = bb_popcount(pawns & BB_FILE[file]);
+            if (count > 1) {
+                color_score -= 15 * (count - 1);
+            }
+        }
+
+        Bitboard pawns_to_check = pawns;
+        while (pawns_to_check) {
+            Square sq = bb_pop_square(pawns_to_check);
+            File file = file_of(sq);
+            Rank rank = rank_of(sq);
+
+            if ((pawns & adjacent_files(file)) == BB_EMPTY) {
+                color_score -= 10;
+            }
+
+            Bitboard passed_mask = (BB_FILE[file] | adjacent_files(file)) & forward_ranks(rank, color);
+            if ((enemy_pawns & passed_mask) == BB_EMPTY) {
+                int advancement = color == COLOR_WHITE ? static_cast<int>(rank) : 7 - static_cast<int>(rank);
+                color_score += 20 + (5 * advancement);
+            }
+        }
+
+        score += sign_for(color) * color_score;
+    }
+
+    return score;
+}
+
+int evaluate_mobility(const BoardState& board) {
+    int score = 0;
+
+    for (Color color : {COLOR_WHITE, COLOR_BLACK}) {
+        Bitboard own = board.occupancy_of(color);
+        int mobility = 0;
+
+        for (PieceType pt = PIECE_KNIGHT; pt <= PIECE_QUEEN;
+             pt = static_cast<PieceType>(static_cast<int>(pt) + 1)) {
+            Bitboard pieces = board.pieces_of(color, pt);
+            while (pieces) {
+                Square sq = bb_pop_square(pieces);
+                mobility += bb_popcount(attacks_for_piece(board, sq, pt, color) & ~own);
+            }
+        }
+
+        score += sign_for(color) * mobility * 2;
+    }
+
+    return score;
+}
+
+int evaluate_center_control(const BoardState& board) {
+    int score = 0;
+
+    for (Color color : {COLOR_WHITE, COLOR_BLACK}) {
+        int controlled = 0;
+        for (PieceType pt = PIECE_PAWN; pt <= PIECE_KING;
+             pt = static_cast<PieceType>(static_cast<int>(pt) + 1)) {
+            Bitboard pieces = board.pieces_of(color, pt);
+            while (pieces) {
+                Square sq = bb_pop_square(pieces);
+                controlled += bb_popcount(attacks_for_piece(board, sq, pt, color) & CENTER_SQUARES);
+            }
+        }
+
+        score += sign_for(color) * controlled * 5;
+    }
+
+    return score;
+}
+
+int evaluate_king_safety(const BoardState& board) {
+    int score = 0;
+
+    for (Color color : {COLOR_WHITE, COLOR_BLACK}) {
+        Square king = board.king_square(color);
+        if (king == SQUARE_NONE) {
+            continue;
+        }
+
+        Bitboard king_bb = bb_from_square(king);
+        Bitboard shield = color == COLOR_WHITE
+                              ? (bb_shift_north(king_bb) |
+                                 bb_shift_northeast(king_bb) |
+                                 bb_shift_northwest(king_bb))
+                              : (bb_shift_south(king_bb) |
+                                 bb_shift_southeast(king_bb) |
+                                 bb_shift_southwest(king_bb));
+        int shield_pawns = bb_popcount(shield & board.pieces_of(color, PIECE_PAWN));
+
+        Bitboard ring = king_attacks(king);
+        int enemy_pressure = 0;
+        for (PieceType pt = PIECE_PAWN; pt <= PIECE_QUEEN;
+             pt = static_cast<PieceType>(static_cast<int>(pt) + 1)) {
+            Bitboard pieces = board.pieces_of(!color, pt);
+            while (pieces) {
+                Square sq = bb_pop_square(pieces);
+                enemy_pressure += bb_popcount(attacks_for_piece(board, sq, pt, !color) & ring);
+            }
+        }
+
+        int color_score = (8 * shield_pawns) - (6 * enemy_pressure);
+        score += sign_for(color) * color_score;
+    }
+
+    return score;
+}
+
+int evaluate_space(const BoardState& board) {
+    int white_space = bb_popcount(board.occupancy_of(COLOR_WHITE) & WHITE_SPACE_AREA);
+    int black_space = bb_popcount(board.occupancy_of(COLOR_BLACK) & BLACK_SPACE_AREA);
+    return (white_space - black_space) * 2;
+}
+
+int evaluate_tempo(const BoardState& board) {
+    return board.side_to_move == COLOR_WHITE ? 10 : -10;
+}
+
+int evaluate_positional_terms(const BoardState& board) {
+    return evaluate_pawn_structure(board) +
+           evaluate_mobility(board) +
+           evaluate_center_control(board) +
+           evaluate_king_safety(board) +
+           evaluate_space(board) +
+           evaluate_tempo(board);
+}
+
 EvalComponents evaluate_components(const BoardState& board) {
     int opening = evaluate_material(board, EvalPhase::OPENING) +
-                  evaluate_position(board, EvalPhase::OPENING);
+                  evaluate_position(board, EvalPhase::OPENING) +
+                  evaluate_positional_terms(board);
     int endgame = evaluate_material(board, EvalPhase::ENDGAME) +
-                  evaluate_position(board, EvalPhase::ENDGAME);
+                  evaluate_position(board, EvalPhase::ENDGAME) +
+                  evaluate_positional_terms(board);
     int phase = phase_score(board);
     int score = ((opening * phase) + (endgame * (MAX_PHASE - phase))) / MAX_PHASE;
 

@@ -100,7 +100,7 @@
       "King safety, space, and tempo terms are incorporated",
       "Evaluation terms are test-covered and deterministic"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S04-F08",

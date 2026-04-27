@@ -2,6 +2,23 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 14:30
+Sprint: sprint-04
+Feature: S04-F07
+Title: Add core positional evaluation features
+Reason selected: next Sprint 04 feature after S04-F06
+Files changed: include/thinmint/eval/eval.h, src/eval/eval.cpp, tests/unit/eval_test.cpp, SPRINT.04.strength-stability.json, PROGRESS.md
+Tests run: ./scripts/verify.sh (25/25 tests passed, total test time 2.53s)
+Perft status: perft regression test remains part of verification and passed
+Git checkpoint: pending
+Result: success
+Known risks:
+- Added deterministic pawn structure terms for doubled, isolated, and passed pawns.
+- Added mobility, center-control, king-safety, space, and tempo terms.
+- Positional terms are folded into both opening and endgame evaluation components before tapered interpolation.
+- Added targeted eval tests for each new term and adjusted side-to-move expectations for tempo.
+Next suggested feature: S04-F08 - Add repetition and fifty-move draw handling
+
 ## 2026-04-27 14:00
 Sprint: sprint-04
 Feature: S04-F06
