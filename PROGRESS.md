@@ -2,6 +2,23 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 13:00
+Sprint: sprint-04
+Feature: S04-F04
+Title: Implement killer moves and history heuristic
+Reason selected: next Sprint 04 feature after S04-F03
+Files changed: src/search/search.cpp, include/thinmint/search/search.h, SPRINT.04.strength-stability.json, PROGRESS.md
+Tests run: ./scripts/verify.sh (25/25 tests passed, total test time 1.97s)
+Perft status: perft regression test remains part of verification and passed
+Git checkpoint: pending
+Result: success
+Known risks:
+- Added per-search heuristic state with two killer move slots per ply and side/from/to history scores.
+- Quiet beta-cutoff moves are stored as killers and receive history bonuses; quiet improving moves also update history.
+- Move ordering now blends captures/promotions with killer and history scores while keeping heuristic state local to each search.
+- Heuristics are intentionally reset for each root search; longer-lived iterative deepening reuse can be considered after transposition table work.
+Next suggested feature: S04-F05 - Implement a transposition table
+
 ## 2026-04-27 12:30
 Sprint: sprint-04
 Feature: S04-F03

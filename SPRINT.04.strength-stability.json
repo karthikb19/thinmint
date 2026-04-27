@@ -55,7 +55,7 @@
       "Killer move storage is integrated safely",
       "History scores influence ordering without breaking correctness"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S04-F05",
