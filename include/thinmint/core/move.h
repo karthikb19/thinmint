@@ -98,8 +98,10 @@ constexpr bool is_promotion(Move m) {
 }
 
 constexpr bool is_castling(Move m) {
-    // Castling has special type 10 (bits 14-15)
-    return (m & (3 << 14)) == static_cast<uint16_t>(MoveFlags::CASTLING);
+    // Castling has special type: bit 15 set, bit 14 clear, bit 12 clear (not a promotion)
+    // Must exclude PROMOTE_ROOK which also has bit 15 set
+    return (m & (3 << 14)) == static_cast<uint16_t>(MoveFlags::CASTLING) &&
+           !is_promotion(m);
 }
 
 constexpr bool is_en_passant(Move m) {

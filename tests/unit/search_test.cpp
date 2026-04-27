@@ -270,14 +270,18 @@ void test_quiescence_finds_winning_capture() {
     // White knight on f3 attacks Black queen on d4
     // Black queen is undefended
     // Static eval is roughly equal, but capturing the queen wins massively
-    BoardState board = board_from_fen("4k3/8/8/3q4/8/5N2/8/4K3 w - - 0 1");
+    // FEN: queen is on d4 (rank 4), knight is on f3 (rank 3)
+    BoardState board = board_from_fen("4k3/8/8/8/3q4/5N2/8/4K3 w - - 0 1");
 
     SearchStats stats;
     stats.reset();
     int q_score = quiescence(board, -INF_SCORE, INF_SCORE, stats);
 
-    // After capturing the queen, White should be massively ahead
-    check(q_score > 500, "Quiescence finds winning queen capture (score > 500)");
+    // After capturing the undefended queen with a knight, White has K+N vs K.
+    // The quiescence score is the resulting material advantage (knight vs nothing ≈ +300).
+    // We check for > 200 to confirm the capture was found and evaluated correctly.
+
+    check(q_score > 200, "Quiescence finds winning queen capture (score > 200)");
 }
 
 // Test that quiescence resolves a simple capture sequence

@@ -9,7 +9,7 @@ fi
 
 ITERATIONS="$1"
 SPRINT_FILE="$2"
-MODEL="${OPENCODE_MODEL:-openrouter/moonshotai/kimi-k2.6}"
+MODEL="${OPENCODE_MODEL:-openrouter/anthropic/claude-sonnet-4.6}"
 
 if [ ! -f "$SPRINT_FILE" ]; then
   echo "Sprint file not found: $SPRINT_FILE"

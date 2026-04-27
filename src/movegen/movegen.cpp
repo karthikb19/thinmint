@@ -401,7 +401,9 @@ size_t generate_pseudo_legal_moves(const BoardState& board, MoveList& moves) {
     return moves.size();
 }
 
-// Generate only capture moves
+// Generate only capture moves (for quiescence search)
+// Includes: captures, en passant, and promotion captures
+// Excludes: quiet promotions (pawn pushes to last rank without capturing)
 size_t generate_captures(const BoardState& board, MoveList& moves) {
     MoveList all_moves;
     generate_pseudo_legal_moves(board, all_moves);
@@ -409,7 +411,9 @@ size_t generate_captures(const BoardState& board, MoveList& moves) {
     moves.clear();
     for (size_t i = 0; i < all_moves.size(); ++i) {
         Move m = all_moves[i];
-        if (is_capture(m) || is_en_passant(m) || is_promotion(m)) {
+        // Include captures (including promotion captures) and en passant
+        // Exclude quiet promotions - they are not tactical captures
+        if (is_capture(m) || is_en_passant(m)) {
             moves.push(m);
         }
     }
