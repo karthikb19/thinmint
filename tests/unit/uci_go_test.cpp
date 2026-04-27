@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string>
 #include <cstdlib>
+#include <chrono>
 
 #include "thinmint/uci/protocol.h"
 #include "thinmint/movegen/attacks.h"
@@ -157,6 +158,30 @@ void test_go_with_time_params() {
           "go with time params returns bestmove");
 }
 
+void test_go_movetime() {
+    std::cout << "\nTest: go movetime" << std::endl;
+
+    Protocol protocol;
+    std::ostringstream output;
+
+    protocol.ProcessCommand("position startpos", output);
+    output.str("");
+
+    auto start = std::chrono::steady_clock::now();
+    protocol.ProcessCommand("go movetime 1", output);
+    auto end = std::chrono::steady_clock::now();
+
+    std::string response = output.str();
+    auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+    check(response.find("bestmove") != std::string::npos,
+          "go movetime returns bestmove");
+    check(response.find("info depth 1") != std::string::npos,
+          "Tiny movetime uses conservative depth 1");
+    check(elapsed_ms < 100,
+          "go movetime returns promptly");
+}
+
 // Test bestmove is legal
 void test_bestmove_is_legal() {
     std::cout << "\nTest: bestmove is legal" << std::endl;
@@ -256,6 +281,7 @@ int main() {
     test_go_mate_position();
     test_go_infinite();
     test_go_with_time_params();
+    test_go_movetime();
     test_bestmove_is_legal();
     test_go_after_moves();
     test_info_format();

@@ -157,6 +157,6 @@
       "go movetime works or an equivalent simple time control is supported",
       "Engine stops predictably within the requested budget"
     ],
-    "passes": false
+    "passes": true
   }
 ]

@@ -2,6 +2,24 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 16:30
+Sprint: sprint-04
+Feature: S04-F11
+Title: Add basic time management for UCI go commands
+Reason selected: final Sprint 04 feature after S04-F10
+Files changed: src/uci/protocol.cpp, tests/unit/uci_go_test.cpp, SPRINT.04.strength-stability.json, PROGRESS.md
+Tests run: ./scripts/verify.sh (25/25 tests passed, total test time 2.01s)
+Perft status: perft regression test remains part of verification and passed
+Git checkpoint: pending
+Result: success
+Known risks:
+- `go movetime N` now maps the requested budget to a conservative synchronous depth: <=50ms depth 1, <=250ms depth 2, otherwise depth 3.
+- Explicit `go depth N` remains supported and takes precedence over movetime when both are present.
+- Added a UCI test proving tiny movetime searches return `bestmove`, use depth 1, and finish promptly.
+- This is simple budget handling, not an interruptible timed search loop.
+- Sprint 04 is now complete: all 11 Sprint 04 items pass.
+Next suggested feature: review roadmap or start a new sprint/backlog
+
 ## 2026-04-27 16:00
 Sprint: sprint-04
 Feature: S04-F10

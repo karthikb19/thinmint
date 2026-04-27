@@ -10,6 +10,20 @@
 
 namespace thinmint::uci {
 
+namespace {
+
+int depth_for_movetime(int movetime_ms) {
+  if (movetime_ms <= 50) {
+    return 1;
+  }
+  if (movetime_ms <= 250) {
+    return 2;
+  }
+  return 3;
+}
+
+}  // namespace
+
 Protocol::Protocol()
     : quit_received_(false),
       ready_(true),
@@ -221,6 +235,7 @@ thinmint::core::Move Protocol::FindLegalMove(const std::string& uci_move) const 
 void Protocol::HandleGo(std::istringstream& iss, std::ostream& out) {
   std::string token;
   int depth = -1;  // -1 means not specified
+  int movetime_ms = -1;
 
   // Parse go command parameters
   while (iss >> token) {
@@ -229,11 +244,15 @@ void Protocol::HandleGo(std::istringstream& iss, std::ostream& out) {
         depth = -1;  // Invalid depth parameter
       }
     }
-    // Other parameters (wtime, btime, movetime, etc.) are parsed but ignored
-    // for now since we only support depth-limited search in this sprint
+    else if (token == "movetime") {
+      int value;
+      if (iss >> value) {
+        movetime_ms = value;
+      }
+    }
+    // Other time-control parameters are parsed but not fully allocated yet.
     else if (token == "wtime" || token == "btime" || token == "winc" ||
-             token == "binc" || token == "movestogo" || token == "movetime") {
-      // Skip the value for these parameters
+             token == "binc" || token == "movestogo") {
       int value;
       iss >> value;
     } else if (token == "infinite") {
@@ -243,7 +262,11 @@ void Protocol::HandleGo(std::istringstream& iss, std::ostream& out) {
     }
   }
 
-  // Default to depth 1 if no depth specified
+  if (depth < 0 && movetime_ms >= 0) {
+    depth = depth_for_movetime(movetime_ms);
+  }
+
+  // Default to depth 1 if no depth or movetime specified
   if (depth < 0) {
     depth = 1;
   }
