@@ -226,11 +226,14 @@ Goal: make `thinmint` respectable rather than merely functional.
 Scope:
 
 - quiescence search
+- principal variation search (PVS)
 - move ordering using captures and simple heuristics
 - killer move heuristic
 - history heuristic
 - transposition table
 - iterative deepening improvements
+- richer evaluation terms beyond material/PST
+- tapered evaluation (opening/endgame interpolation by phase)
 - aspiration windows if still stable
 - repetition and fifty-move handling if not already complete
 - benchmarking harness
@@ -245,6 +248,8 @@ Required tests:
 - repetition handling tests
 - draw detection tests
 - transposition table consistency tests where practical
+- PVS re-search behavior tests in controlled positions
+- evaluation component tests (material, PST, pawn structure, mobility, king safety, phase interpolation)
 
 Exit criteria:
 

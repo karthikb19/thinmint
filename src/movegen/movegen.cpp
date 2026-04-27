@@ -367,6 +367,9 @@ void generate_sliding_moves(const BoardState& board, MoveList& moves, Color us, 
 
 }  // namespace
 
+// Forward declaration for pin detection used in legal move filtering
+Bitboard get_pin_ray(const BoardState& board, Color us, Square piece_sq);
+
 // Generate all pseudo-legal moves for the current side to move
 size_t generate_pseudo_legal_moves(const BoardState& board, MoveList& moves) {
     moves.clear();
@@ -409,6 +412,166 @@ size_t generate_captures(const BoardState& board, MoveList& moves) {
         if (is_capture(m) || is_en_passant(m) || is_promotion(m)) {
             moves.push(m);
         }
+    }
+
+    return moves.size();
+}
+
+// Generate only legal capture moves (for quiescence search)
+// This generates pseudo-legal captures then filters for legality
+size_t generate_legal_captures(const BoardState& board, MoveList& moves) {
+    MoveList pseudo_captures;
+    generate_captures(board, pseudo_captures);
+
+    moves.clear();
+
+    Color us = board.side_to_move;
+    Color them = !us;
+    Square king_sq = board.king_square(us);
+    Bitboard checkers = get_checkers(board, us);
+    int num_checkers = bb_popcount(checkers);
+
+    // Get pin rays for all pieces
+    Bitboard our_pieces = board.occupancy_of(us);
+
+    for (size_t i = 0; i < pseudo_captures.size(); ++i) {
+        Move m = pseudo_captures[i];
+        Square from_sq = from_square(m);
+
+        if (num_checkers == 0) {
+            // Not in check - filter for pins and EP discovered checks
+            if (from_sq == king_sq) {
+                // King capture - verify destination is not attacked
+                Square to_sq = to_square(m);
+
+                // Check king adjacency
+                Square enemy_king_sq = board.king_square(them);
+                if (enemy_king_sq != SQUARE_NONE) {
+                    int enemy_king_file = file_of(enemy_king_sq);
+                    int enemy_king_rank = rank_of(enemy_king_sq);
+                    int to_file = file_of(to_sq);
+                    int to_rank = rank_of(to_sq);
+
+                    int file_diff = abs(to_file - enemy_king_file);
+                    int rank_diff = abs(to_rank - enemy_king_rank);
+                    if (file_diff <= 1 && rank_diff <= 1) {
+                        continue;  // Cannot move adjacent to enemy king
+                    }
+                }
+
+                // Create temp board with king moved
+                BoardState temp_board = board;
+                Bitboard from_bb = bb_from_square(from_sq);
+                Bitboard to_bb = bb_from_square(to_sq);
+
+                temp_board.pieces[static_cast<size_t>(us)][static_cast<size_t>(PIECE_KING)] &= ~from_bb;
+                temp_board.pieces[static_cast<size_t>(us)][static_cast<size_t>(PIECE_KING)] |= to_bb;
+
+                if (us == COLOR_WHITE) {
+                    temp_board.white_occupancy &= ~from_bb;
+                    temp_board.white_occupancy |= to_bb;
+                } else {
+                    temp_board.black_occupancy &= ~from_bb;
+                    temp_board.black_occupancy |= to_bb;
+                }
+                temp_board.all_occupancy = temp_board.white_occupancy | temp_board.black_occupancy;
+
+                if (!is_square_attacked(temp_board, to_sq, them)) {
+                    moves.push(m);
+                }
+            } else {
+                // Non-king capture - check if pinned
+                Bitboard pin_ray = get_pin_ray(board, us, from_sq);
+                Square to_sq = to_square(m);
+
+                if (pin_ray == BB_EMPTY) {
+                    // Not pinned
+                    if (is_en_passant(m)) {
+                        // EP needs discovered check validation
+                        BoardState temp_board = board;
+                        Bitboard from_bb = bb_from_square(from_sq);
+                        Bitboard to_bb = bb_from_square(to_sq);
+
+                        Rank cap_rank = (us == COLOR_WHITE) ? RANK_5 : RANK_4;
+                        Square captured_sq = make_square(file_of(to_sq), cap_rank);
+                        Bitboard captured_bb = bb_from_square(captured_sq);
+
+                        temp_board.pieces[static_cast<size_t>(us)][static_cast<size_t>(PIECE_PAWN)] &= ~from_bb;
+                        temp_board.pieces[static_cast<size_t>(us)][static_cast<size_t>(PIECE_PAWN)] |= to_bb;
+                        temp_board.pieces[static_cast<size_t>(them)][static_cast<size_t>(PIECE_PAWN)] &= ~captured_bb;
+
+                        if (us == COLOR_WHITE) {
+                            temp_board.white_occupancy &= ~from_bb;
+                            temp_board.white_occupancy |= to_bb;
+                            temp_board.black_occupancy &= ~captured_bb;
+                        } else {
+                            temp_board.black_occupancy &= ~from_bb;
+                            temp_board.black_occupancy |= to_bb;
+                            temp_board.white_occupancy &= ~captured_bb;
+                        }
+                        temp_board.all_occupancy = temp_board.white_occupancy | temp_board.black_occupancy;
+
+                        Square our_king_sq = temp_board.king_square(us);
+                        if (!is_square_attacked(temp_board, our_king_sq, them)) {
+                            moves.push(m);
+                        }
+                    } else {
+                        // Regular capture - legal if not pinned
+                        moves.push(m);
+                    }
+                } else {
+                    // Pinned - can only capture along pin ray (includes capturing the pinning piece)
+                    if (bb_test(pin_ray, to_sq)) {
+                        moves.push(m);
+                    }
+                }
+            }
+        } else if (num_checkers == 1) {
+            // Single check - capture must capture the checker
+            Square checker_sq = bb_pop_square(checkers);
+            Square to_sq = to_square(m);
+
+            if (to_sq == checker_sq) {
+                // Capturing the checker - verify it's legal
+                if (from_sq == king_sq) {
+                    // King capture of checker - verify destination safety
+                    BoardState temp_board = board;
+                    Bitboard from_bb = bb_from_square(from_sq);
+                    Bitboard to_bb = bb_from_square(to_sq);
+
+                    temp_board.pieces[static_cast<size_t>(us)][static_cast<size_t>(PIECE_KING)] &= ~from_bb;
+                    temp_board.pieces[static_cast<size_t>(us)][static_cast<size_t>(PIECE_KING)] |= to_bb;
+
+                    // Remove captured piece
+                    for (PieceType pt = PIECE_PAWN; pt <= PIECE_KING; pt = static_cast<PieceType>(static_cast<int>(pt) + 1)) {
+                        temp_board.pieces[static_cast<size_t>(them)][static_cast<size_t>(pt)] &= ~to_bb;
+                    }
+
+                    if (us == COLOR_WHITE) {
+                        temp_board.white_occupancy &= ~from_bb;
+                        temp_board.white_occupancy |= to_bb;
+                        temp_board.black_occupancy &= ~to_bb;
+                    } else {
+                        temp_board.black_occupancy &= ~from_bb;
+                        temp_board.black_occupancy |= to_bb;
+                        temp_board.white_occupancy &= ~to_bb;
+                    }
+                    temp_board.all_occupancy = temp_board.white_occupancy | temp_board.black_occupancy;
+
+                    if (!is_square_attacked(temp_board, to_sq, them)) {
+                        moves.push(m);
+                    }
+                } else {
+                    // Non-king capture of checker - verify not pinned
+                    Bitboard pin_ray = get_pin_ray(board, us, from_sq);
+                    if (pin_ray == BB_EMPTY || bb_test(pin_ray, to_sq)) {
+                        moves.push(m);
+                    }
+                }
+            }
+            // Note: captures that don't capture the checker don't evade check
+        }
+        // Double check - only king moves can evade, but those aren't captures in quiescence
     }
 
     return moves.size();

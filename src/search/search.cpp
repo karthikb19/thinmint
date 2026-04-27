@@ -1,5 +1,7 @@
 #include "thinmint/search/search.h"
 
+#include <iostream>
+
 #include "thinmint/board/makemove.h"
 #include "thinmint/board/unmakemove.h"
 #include "thinmint/eval/eval.h"
@@ -57,11 +59,9 @@ int negamax(BoardState& board, int depth, int alpha, int beta, SearchStats& stat
         return get_terminal_score(board, stats.current_max_depth - depth);
     }
 
-    // Depth limit reached - evaluate
+    // Depth limit reached - quiescence search
     if (depth <= 0) {
-        stats.leaf_nodes++;
-        // Evaluate from current side's perspective
-        return evaluate(board);
+        return quiescence(board, alpha, beta, stats);
     }
 
     int best_score = -INF_SCORE;
@@ -172,9 +172,82 @@ SearchResult search_root(BoardState& board, int depth) {
 }
 
 int quiescence(BoardState& board, int alpha, int beta, SearchStats& stats) {
-    // For now, just return static evaluation
-    // Full quiescence search will be implemented in Sprint 04
-    return evaluate(board);
+    stats.nodes_searched++;
+
+    // Generate all legal moves to detect terminal positions and check status
+    MoveList all_moves;
+    generate_legal_moves(board, all_moves);
+
+    // Terminal node: no legal moves
+    if (all_moves.empty()) {
+        stats.leaf_nodes++;
+        return get_terminal_score(board, stats.current_max_depth - stats.current_depth);
+    }
+
+    // Get static evaluation (stand-pat score)
+    int stand_pat = evaluate(board);
+
+    // Stand-pat: if static eval is already >= beta, we can cutoff
+    if (stand_pat >= beta) {
+        return beta;
+    }
+
+    // Update alpha if stand-pat is better
+    if (stand_pat > alpha) {
+        alpha = stand_pat;
+    }
+
+    // If in check, search all legal moves (not just captures)
+    // to ensure we find a way out of check
+    bool in_check = board.is_check(board.side_to_move);
+    MoveList moves;
+    if (in_check) {
+        moves = all_moves;
+    } else {
+        generate_legal_captures(board, moves);
+    }
+
+    // If no captures (and not in check), just return static evaluation
+    if (moves.empty()) {
+        stats.leaf_nodes++;
+        return stand_pat;
+    }
+
+    // Search captures (or all moves if in check)
+    for (size_t i = 0; i < moves.size(); ++i) {
+        Move move = moves[i];
+
+        // Defensive check: verify there's a piece at the from square
+        if (board.piece_type_at(from_square(move)) == PIECE_NONE) {
+            std::cerr << "QUIESCENCE BUG: no piece at from square " << from_square(move)
+                      << " for move " << move << " in_check=" << in_check
+                      << " stand_pat=" << stand_pat << std::endl;
+            continue;
+        }
+
+        // Make the move
+        UndoState undo = make_move_with_undo(board, move);
+        stats.current_depth++;
+
+        // Recursively search with negated window
+        int score = -quiescence(board, -beta, -alpha, stats);
+
+        // Unmake the move
+        unmake_move(board, undo);
+        stats.current_depth--;
+
+        // Check for beta cutoff (fail-high)
+        if (score >= beta) {
+            return beta;
+        }
+
+        // Update alpha
+        if (score > alpha) {
+            alpha = score;
+        }
+    }
+
+    return alpha;
 }
 
 SearchResult iterative_deepening(BoardState& board, int max_depth, SearchStats* stats) {

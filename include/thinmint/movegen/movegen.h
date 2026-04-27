@@ -84,6 +84,10 @@ size_t generate_castling_moves(const thinmint::board::BoardState& board, MoveLis
 // Includes promotion captures
 size_t generate_captures(const thinmint::board::BoardState& board, MoveList& moves);
 
+// Generate only legal capture moves (for quiescence search)
+// This filters pseudo-legal captures to ensure legality
+size_t generate_legal_captures(const thinmint::board::BoardState& board, MoveList& moves);
+
 // Generate only quiet (non-capture) moves
 // Includes promotion pushes (these are technically non-captures)
 size_t generate_quiet_moves(const thinmint::board::BoardState& board, MoveList& moves);

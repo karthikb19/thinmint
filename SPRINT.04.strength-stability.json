@@ -30,10 +30,26 @@
   {
     "id": "S04-F03",
     "sprint": "sprint-04",
-    "title": "Implement killer moves and history heuristic",
+    "title": "Implement Principal Variation Search (PVS)",
     "category": "search",
     "priority": 3,
     "depends_on": ["S04-F02"],
+    "description": "Upgrade alpha-beta to PVS by searching the first move with a full window and later moves with a null window plus re-search when required.",
+    "acceptance": [
+      "First move in PV nodes is searched with a full alpha-beta window",
+      "Later moves are searched with a zero window around alpha",
+      "Fail-highs between alpha and beta trigger a full-window re-search",
+      "Search returns stable legal bestmove outputs after the change"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S04-F04",
+    "sprint": "sprint-04",
+    "title": "Implement killer moves and history heuristic",
+    "category": "search",
+    "priority": 4,
+    "depends_on": ["S04-F03"],
     "description": "Add lightweight heuristic state to improve move ordering in deeper searches.",
     "acceptance": [
       "Killer move storage is integrated safely",
@@ -42,12 +58,12 @@
     "passes": false
   },
   {
-    "id": "S04-F04",
+    "id": "S04-F05",
     "sprint": "sprint-04",
     "title": "Implement a transposition table",
     "category": "search",
-    "priority": 4,
-    "depends_on": ["S04-F02"],
+    "priority": 5,
+    "depends_on": ["S04-F03"],
     "description": "Cache previously searched positions to reduce duplicated work.",
     "acceptance": [
       "Table lookups and writes are integrated into search",
@@ -56,12 +72,43 @@
     "passes": false
   },
   {
-    "id": "S04-F05",
+    "id": "S04-F06",
+    "sprint": "sprint-04",
+    "title": "Implement phased and tapered evaluation framework",
+    "category": "evaluation",
+    "priority": 6,
+    "depends_on": [],
+    "description": "Add an opening/endgame evaluation split with tapered interpolation by game phase.",
+    "acceptance": [
+      "Evaluation exposes separate opening and endgame components",
+      "Final score uses tapered interpolation by game phase",
+      "Material and piece-square tables are represented in both phases"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S04-F07",
+    "sprint": "sprint-04",
+    "title": "Add core positional evaluation features",
+    "category": "evaluation",
+    "priority": 7,
+    "depends_on": ["S04-F06"],
+    "description": "Extend evaluation beyond material/PST with practical positional terms.",
+    "acceptance": [
+      "Pawn structure terms exist (at least doubled, isolated, passed pawns)",
+      "Mobility and center-control terms are incorporated",
+      "King safety, space, and tempo terms are incorporated",
+      "Evaluation terms are test-covered and deterministic"
+    ],
+    "passes": false
+  },
+  {
+    "id": "S04-F08",
     "sprint": "sprint-04",
     "title": "Add repetition and fifty-move draw handling",
     "category": "rules",
-    "priority": 5,
-    "depends_on": ["S04-F04"],
+    "priority": 8,
+    "depends_on": ["S04-F05"],
     "description": "Score repeated and rule-based draw states correctly in search.",
     "acceptance": [
       "Repetition detection is tested",
@@ -70,12 +117,12 @@
     "passes": false
   },
   {
-    "id": "S04-F06",
+    "id": "S04-F09",
     "sprint": "sprint-04",
     "title": "Add node counting and benchmarking support",
     "category": "tooling",
-    "priority": 6,
-    "depends_on": ["S04-F02"],
+    "priority": 9,
+    "depends_on": ["S04-F03"],
     "description": "Measure search performance and compare changes across checkpoints.",
     "acceptance": [
       "Engine reports node counts or benchmark output",
@@ -84,12 +131,12 @@
     "passes": false
   },
   {
-    "id": "S04-F07",
+    "id": "S04-F10",
     "sprint": "sprint-04",
     "title": "Add search regression suite and no-regression gates",
     "category": "validation",
-    "priority": 7,
-    "depends_on": ["S04-F01", "S04-F04", "S04-F05"],
+    "priority": 10,
+    "depends_on": ["S04-F01", "S04-F03", "S04-F05", "S04-F08"],
     "description": "Ensure strength work does not silently break legality or tactical correctness.",
     "acceptance": [
       "Tactical regression positions are automated",
@@ -99,12 +146,12 @@
     "passes": false
   },
   {
-    "id": "S04-F08",
+    "id": "S04-F11",
     "sprint": "sprint-04",
     "title": "Add basic time management for UCI go commands",
     "category": "uci",
-    "priority": 8,
-    "depends_on": ["S04-F07"],
+    "priority": 11,
+    "depends_on": ["S04-F10"],
     "description": "Handle simple search budgeting so the engine is less awkward in GUIs.",
     "acceptance": [
       "go movetime works or an equivalent simple time control is supported",

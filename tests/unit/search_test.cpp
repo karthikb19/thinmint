@@ -249,6 +249,90 @@ void test_limited_material() {
     check(result.best_move != MOVE_NONE, "KP vs K finds move");
 }
 
+// Test basic quiescence search functionality
+void test_quiescence_basic() {
+    std::cout << "\nTest: Quiescence search basic" << std::endl;
+
+    BoardState board = board_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+    SearchStats stats;
+    stats.reset();
+    int score = quiescence(board, -INF_SCORE, INF_SCORE, stats);
+
+    check(score != INF_SCORE && score != -INF_SCORE, "Quiescence returns a finite score");
+    check(stats.nodes_searched > 0, "Quiescence searched at least one node");
+}
+
+// Test that quiescence finds a winning capture
+void test_quiescence_finds_winning_capture() {
+    std::cout << "\nTest: Quiescence finds winning capture" << std::endl;
+
+    // White knight on f3 attacks Black queen on d4
+    // Black queen is undefended
+    // Static eval is roughly equal, but capturing the queen wins massively
+    BoardState board = board_from_fen("4k3/8/8/3q4/8/5N2/8/4K3 w - - 0 1");
+
+    SearchStats stats;
+    stats.reset();
+    int q_score = quiescence(board, -INF_SCORE, INF_SCORE, stats);
+
+    // After capturing the queen, White should be massively ahead
+    check(q_score > 500, "Quiescence finds winning queen capture (score > 500)");
+}
+
+// Test that quiescence resolves a simple capture sequence
+void test_quiescence_capture_sequence() {
+    std::cout << "\nTest: Quiescence resolves capture sequence" << std::endl;
+
+    // White queen on d4 attacks Black rook on d8
+    // Black rook is defended by Black queen on d5
+    // White queen capture Qxd8 is met by Qxd8
+    // Net: White loses queen for rook (bad)
+    BoardState board = board_from_fen("3r4/8/8/3q4/3Q4/8/8/4K2k w - - 0 1");
+
+    SearchStats stats;
+    stats.reset();
+    int q_score = quiescence(board, -INF_SCORE, INF_SCORE, stats);
+
+    // The quiescence search should see that Qxd8 loses the queen
+    // and prefer not to capture, so score should not be hugely positive
+    // (it might be slightly negative due to position)
+    check(q_score < 400, "Quiescence avoids bad capture sequence (score < 400)");
+}
+
+// Test quiescence when in check: must find evasions
+void test_quiescence_in_check() {
+    std::cout << "\nTest: Quiescence in check" << std::endl;
+
+    // Black rook on a1 gives check to White king on a2
+    // White can block with Bb1 or move king
+    BoardState board = board_from_fen("r7/8/8/8/8/8/K7/8 w - - 0 1");
+
+    SearchStats stats;
+    stats.reset();
+    int q_score = quiescence(board, -INF_SCORE, INF_SCORE, stats);
+
+    // Should not be mated - there are legal evasions (Ka1, Ka3, etc.)
+    // Since no capture gets out of check, q-search with in-check expansion
+    // should find a non-capture evasion and return a finite score
+    check(q_score > -MATE_THRESHOLD, "Quiescence finds evasion when in check");
+}
+
+// Test that quiescence stand-pat works when no captures are available
+void test_quiescence_stand_pat() {
+    std::cout << "\nTest: Quiescence stand-pat" << std::endl;
+
+    // King vs King - no captures possible
+    BoardState board = board_from_fen("4k3/8/8/8/8/8/8/4K3 w - - 0 1");
+
+    SearchStats stats;
+    stats.reset();
+    int q_score = quiescence(board, -INF_SCORE, INF_SCORE, stats);
+
+    // Should return near-zero score (drawish)
+    check(std::abs(q_score) < 50, "Stand-pat in dead drawn position (score near 0)");
+}
+
 int main() {
     std::cout << "=== Search Tests ===" << std::endl;
 
@@ -268,6 +352,11 @@ int main() {
     test_repeated_searches();
     test_negamax_scores();
     test_limited_material();
+    test_quiescence_basic();
+    test_quiescence_finds_winning_capture();
+    test_quiescence_capture_sequence();
+    test_quiescence_in_check();
+    test_quiescence_stand_pat();
 
     std::cout << "\n=== Test Summary ===" << std::endl;
     std::cout << "Passed: " << tests_passed << std::endl;
