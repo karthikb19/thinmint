@@ -57,7 +57,7 @@ struct SearchResult {
           mate_in(0) {}
 };
 
-// Negamax search with alpha-beta pruning
+// Negamax search with alpha-beta pruning and Principal Variation Search.
 // Returns the best score for the current side to move
 //
 // Parameters:

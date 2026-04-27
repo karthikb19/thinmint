@@ -41,7 +41,7 @@
       "Fail-highs between alpha and beta trigger a full-window re-search",
       "Search returns stable legal bestmove outputs after the change"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S04-F04",

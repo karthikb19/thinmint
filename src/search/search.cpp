@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
 
 #include "thinmint/board/makemove.h"
 #include "thinmint/board/unmakemove.h"
@@ -125,6 +126,7 @@ int negamax(BoardState& board, int depth, int alpha, int beta, SearchStats& stat
 
     int best_score = -INF_SCORE;
 
+    bool searched_first_move = false;
     OrderedMoves ordered = order_moves(board, moves);
     for (size_t i = 0; i < ordered.count; ++i) {
         Move move = ordered.moves[i].move;
@@ -133,8 +135,16 @@ int negamax(BoardState& board, int depth, int alpha, int beta, SearchStats& stat
         UndoState undo = make_move_with_undo(board, move);
         stats.current_depth++;
 
-        // Recursively search
-        int score = -negamax(board, depth - 1, -beta, -alpha, stats);
+        int score;
+        if (!searched_first_move) {
+            score = -negamax(board, depth - 1, -beta, -alpha, stats);
+            searched_first_move = true;
+        } else {
+            score = -negamax(board, depth - 1, -alpha - 1, -alpha, stats);
+            if (score > alpha && score < beta) {
+                score = -negamax(board, depth - 1, -beta, -alpha, stats);
+            }
+        }
 
         // Unmake the move
         unmake_move(board, undo);
@@ -191,6 +201,7 @@ SearchResult search_root(BoardState& board, int depth) {
     int alpha = -INF_SCORE;
     int beta = INF_SCORE;
 
+    bool searched_first_move = false;
     OrderedMoves ordered = order_moves(board, moves);
     for (size_t i = 0; i < ordered.count; ++i) {
         Move move = ordered.moves[i].move;
@@ -199,8 +210,16 @@ SearchResult search_root(BoardState& board, int depth) {
         UndoState undo = make_move_with_undo(board, move);
         stats.current_depth = 1;
 
-        // Search with negamax
-        int score = -negamax(board, depth - 1, -beta, -alpha, stats);
+        int score;
+        if (!searched_first_move) {
+            score = -negamax(board, depth - 1, -beta, -alpha, stats);
+            searched_first_move = true;
+        } else {
+            score = -negamax(board, depth - 1, -alpha - 1, -alpha, stats);
+            if (score > alpha && score < beta) {
+                score = -negamax(board, depth - 1, -beta, -alpha, stats);
+            }
+        }
 
         // Unmake the move
         unmake_move(board, undo);

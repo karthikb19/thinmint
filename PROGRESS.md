@@ -2,6 +2,23 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 12:30
+Sprint: sprint-04
+Feature: S04-F03
+Title: Implement Principal Variation Search (PVS)
+Reason selected: next Sprint 04 feature after S04-F02
+Files changed: src/search/search.cpp, include/thinmint/search/search.h, SPRINT.04.strength-stability.json, PROGRESS.md
+Tests run: ./scripts/verify.sh (25/25 tests passed, total test time 3.30s)
+Perft status: perft regression test remains part of verification and passed
+Git checkpoint: pending
+Result: success
+Known risks:
+- Root search and recursive negamax now search the first ordered move with a full alpha-beta window.
+- Later ordered moves are searched with a null window around alpha and re-searched with the full window on a score between alpha and beta.
+- Existing search, iterative deepening, UCI go, and tactical regression tests all pass with stable legal bestmove outputs.
+- Explicit PVS instrumentation counters are not present yet; S04-F09 can add benchmark/reporting support.
+Next suggested feature: S04-F04 - Implement killer moves and history heuristic
+
 ## 2026-04-27 12:00
 Sprint: sprint-04
 Feature: S04-F02
