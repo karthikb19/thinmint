@@ -20,6 +20,22 @@ inline constexpr int MAX_QUIESCENCE_PLY = 8;
 inline constexpr int KILLER_SLOTS = 2;
 inline constexpr int HISTORY_COLOR_COUNT = 2;
 inline constexpr int SQUARE_COUNT = 64;
+inline constexpr size_t TRANSPOSITION_TABLE_SIZE = 1 << 16;
+
+enum class TTBound : uint8_t {
+    NONE,
+    EXACT,
+    LOWER,
+    UPPER
+};
+
+struct TTEntry {
+    uint64_t key = 0;
+    int depth = -1;
+    int score = 0;
+    Move best_move = MOVE_NONE;
+    TTBound bound = TTBound::NONE;
+};
 
 struct ScoredMove {
     Move move;
@@ -34,6 +50,7 @@ struct OrderedMoves {
 struct SearchHeuristics {
     std::array<std::array<Move, KILLER_SLOTS>, MAX_DEPTH> killers{};
     std::array<std::array<std::array<int, SQUARE_COUNT>, SQUARE_COUNT>, HISTORY_COLOR_COUNT> history{};
+    std::array<TTEntry, TRANSPOSITION_TABLE_SIZE> tt{};
 };
 
 int search_ply(const SearchStats& stats) {
@@ -50,6 +67,38 @@ int heuristic_ply(const SearchStats& stats) {
 
 bool is_tactical_move(Move move) {
     return is_capture(move) || is_en_passant(move) || is_promotion(move);
+}
+
+uint64_t mix_key(uint64_t value) {
+    value += 0x9e3779b97f4a7c15ULL;
+    value = (value ^ (value >> 30)) * 0xbf58476d1ce4e5b9ULL;
+    value = (value ^ (value >> 27)) * 0x94d049bb133111ebULL;
+    return value ^ (value >> 31);
+}
+
+uint64_t position_key(const BoardState& board) {
+    uint64_t key = 0x6a09e667f3bcc909ULL;
+
+    for (size_t color = 0; color < COLOR_COUNT; ++color) {
+        for (size_t pt = 1; pt < PIECE_TYPE_COUNT; ++pt) {
+            Bitboard pieces = board.pieces[color][pt];
+            while (pieces) {
+                Square sq = bb_pop_square(pieces);
+                uint64_t seed = (color * PIECE_TYPE_COUNT * SQUARE_COUNT) +
+                                (pt * SQUARE_COUNT) +
+                                static_cast<size_t>(sq);
+                key ^= mix_key(seed);
+            }
+        }
+    }
+
+    key ^= mix_key(768 + static_cast<size_t>(board.side_to_move));
+    key ^= mix_key(800 + static_cast<size_t>(board.castling_rights));
+    if (board.en_passant_square != SQUARE_NONE) {
+        key ^= mix_key(832 + static_cast<size_t>(board.en_passant_square));
+    }
+
+    return key;
 }
 
 bool is_killer_move(const SearchHeuristics& heuristics, int ply, Move move) {
@@ -79,9 +128,14 @@ void add_history_score(SearchHeuristics& heuristics, Color side, Move move, int 
 int move_order_score(const BoardState& board,
                      const SearchHeuristics* heuristics,
                      int ply,
+                     Move tt_move,
                      Move move) {
     int score = 0;
     PieceType attacker = board.piece_type_at(from_square(move));
+
+    if (move == tt_move) {
+        score += 30000;
+    }
 
     if (is_capture(move) || is_en_passant(move)) {
         PieceType victim = is_en_passant(move) ? PIECE_PAWN : board.piece_type_at(to_square(move));
@@ -112,13 +166,14 @@ int move_order_score(const BoardState& board,
 OrderedMoves order_moves(const BoardState& board,
                          const MoveList& moves,
                          const SearchHeuristics* heuristics = nullptr,
-                         int ply = 0) {
+                         int ply = 0,
+                         Move tt_move = MOVE_NONE) {
     OrderedMoves ordered;
     ordered.count = moves.size();
 
     for (size_t i = 0; i < moves.size(); ++i) {
         Move move = moves[i];
-        ordered.moves[i] = {move, move_order_score(board, heuristics, ply, move)};
+        ordered.moves[i] = {move, move_order_score(board, heuristics, ply, tt_move, move)};
     }
 
     std::stable_sort(ordered.moves.begin(),
@@ -128,6 +183,64 @@ OrderedMoves order_moves(const BoardState& board,
                      });
 
     return ordered;
+}
+
+TTEntry* find_tt_entry(SearchHeuristics& heuristics, uint64_t key) {
+    TTEntry& entry = heuristics.tt[key % TRANSPOSITION_TABLE_SIZE];
+    return entry.key == key ? &entry : nullptr;
+}
+
+Move tt_best_move(SearchHeuristics& heuristics, uint64_t key) {
+    TTEntry* entry = find_tt_entry(heuristics, key);
+    return entry != nullptr ? entry->best_move : MOVE_NONE;
+}
+
+bool probe_tt(SearchHeuristics& heuristics,
+              uint64_t key,
+              int depth,
+              int& alpha,
+              int& beta,
+              int& score) {
+    TTEntry* entry = find_tt_entry(heuristics, key);
+    if (entry == nullptr || entry->depth < depth) {
+        return false;
+    }
+
+    if (entry->bound == TTBound::EXACT) {
+        score = entry->score;
+        return true;
+    }
+
+    if (entry->bound == TTBound::LOWER) {
+        alpha = std::max(alpha, entry->score);
+    } else if (entry->bound == TTBound::UPPER) {
+        beta = std::min(beta, entry->score);
+    }
+
+    if (alpha >= beta) {
+        score = entry->score;
+        return true;
+    }
+
+    return false;
+}
+
+void store_tt(SearchHeuristics& heuristics,
+              uint64_t key,
+              int depth,
+              int score,
+              Move best_move,
+              TTBound bound) {
+    TTEntry& entry = heuristics.tt[key % TRANSPOSITION_TABLE_SIZE];
+    if (entry.bound != TTBound::NONE && entry.depth > depth && entry.key != key) {
+        return;
+    }
+
+    entry.key = key;
+    entry.depth = depth;
+    entry.score = score;
+    entry.best_move = best_move;
+    entry.bound = bound;
 }
 
 }  // namespace
@@ -175,6 +288,8 @@ int negamax_impl(BoardState& board,
                  SearchHeuristics& heuristics) {
     stats.nodes_searched++;
     const int original_alpha = alpha;
+    const int original_beta = beta;
+    uint64_t key = position_key(board);
 
     // Terminal node check
     MoveList moves;
@@ -190,12 +305,17 @@ int negamax_impl(BoardState& board,
         return quiescence(board, alpha, beta, stats);
     }
 
+    int tt_score = 0;
+    if (probe_tt(heuristics, key, depth, alpha, beta, tt_score)) {
+        return tt_score;
+    }
+
     int best_score = -INF_SCORE;
     Move best_move = MOVE_NONE;
     int ply = heuristic_ply(stats);
 
     bool searched_first_move = false;
-    OrderedMoves ordered = order_moves(board, moves, &heuristics, ply);
+    OrderedMoves ordered = order_moves(board, moves, &heuristics, ply, tt_best_move(heuristics, key));
     for (size_t i = 0; i < ordered.count; ++i) {
         Move move = ordered.moves[i].move;
         Color moving_side = board.side_to_move;
@@ -242,6 +362,14 @@ int negamax_impl(BoardState& board,
         add_history_score(heuristics, board.side_to_move, best_move, depth);
     }
 
+    TTBound bound = TTBound::EXACT;
+    if (best_score <= original_alpha) {
+        bound = TTBound::UPPER;
+    } else if (best_score >= original_beta) {
+        bound = TTBound::LOWER;
+    }
+    store_tt(heuristics, key, depth, best_score, best_move, bound);
+
     return best_score;
 }
 
@@ -282,9 +410,10 @@ SearchResult search_root(BoardState& board, int depth) {
     int alpha = -INF_SCORE;
     int beta = INF_SCORE;
     SearchHeuristics heuristics;
+    uint64_t key = position_key(board);
 
     bool searched_first_move = false;
-    OrderedMoves ordered = order_moves(board, moves, &heuristics, 0);
+    OrderedMoves ordered = order_moves(board, moves, &heuristics, 0, tt_best_move(heuristics, key));
     for (size_t i = 0; i < ordered.count; ++i) {
         Move move = ordered.moves[i].move;
         Color moving_side = board.side_to_move;
@@ -319,6 +448,8 @@ SearchResult search_root(BoardState& board, int depth) {
             add_history_score(heuristics, moving_side, move, depth);
         }
     }
+
+    store_tt(heuristics, key, depth, best_score, best_move, TTBound::EXACT);
 
     result.best_move = best_move;
     result.score = best_score;

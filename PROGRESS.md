@@ -2,6 +2,24 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 13:30
+Sprint: sprint-04
+Feature: S04-F05
+Title: Implement a transposition table
+Reason selected: next Sprint 04 feature after S04-F04; dependency S04-F03 satisfied
+Files changed: src/search/search.cpp, include/thinmint/search/search.h, SPRINT.04.strength-stability.json, PROGRESS.md
+Tests run: ./scripts/verify.sh (25/25 tests passed, total test time 1.87s)
+Perft status: perft regression test remains part of verification and passed
+Git checkpoint: pending
+Result: success
+Known risks:
+- Added a fixed-size per-search transposition table with deterministic position keys, depth, score, bound type, and stored best move.
+- Search probes exact/lower/upper bounds before expanding non-leaf nodes and writes entries after node completion.
+- Stored best moves are fed into move ordering to improve first-move quality.
+- The key is generated from pieces, side to move, castling rights, and en passant square; halfmove/fullmove clocks are intentionally excluded until draw handling lands.
+- The table is local to each root search; iterative deepening does not reuse it across completed depth iterations yet.
+Next suggested feature: S04-F06 - Implement phased and tapered evaluation framework
+
 ## 2026-04-27 13:00
 Sprint: sprint-04
 Feature: S04-F04

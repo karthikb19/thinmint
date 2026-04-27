@@ -69,7 +69,7 @@
       "Table lookups and writes are integrated into search",
       "Stored entries do not produce illegal or inconsistent behavior"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S04-F06",
