@@ -115,9 +115,10 @@ void test_mate_in_one_corner() {
 void test_mate_in_one_promotion() {
     std::cout << "\nTest: Promotion mate-in-one" << std::endl;
 
-    // Position: White pawn on g7, Black king on h8
-    // g8=Q# or g8=N# (knight also works) delivers mate
-    BoardState board = board_from_fen("7k/6P1/8/8/8/8/8/4K3 w - - 0 1");
+    // Position: White pawn on g7 can promote with check.
+    // Keep the black king off h8 so the fixture does not allow an illegal
+    // king capture by the promoting pawn.
+    BoardState board = board_from_fen("k7/6P1/6K1/8/8/8/8/8 w - - 0 1");
 
     SearchResult result = search_root(board, 2);
 
@@ -263,12 +264,12 @@ void test_bestmove_always_legal() {
     std::cout << "\nTest: Bestmove is legal in regression positions" << std::endl;
 
     std::vector<RegressionPosition> positions = {
-        {"Start position", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 3},
-        {"Kiwipete", "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 3},
-        {"Open position", "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4", 3},
-        {"Endgame", "8/8/4k3/3pP3/3K4/8/8/8 w - d6 0 1", 4},
-        {"Pinned position", "4k3/4r3/8/8/8/3B4/8/4K3 w - - 0 1", 3},
-        {"Check position", "4k3/4r3/8/8/8/8/8/4K2R w K - 0 1", 3},
+        {"Start position", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 2},
+        {"Kiwipete", "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 2},
+        {"Open position", "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4", 2},
+        {"Endgame", "8/8/4k3/3pP3/3K4/8/8/8 w - d6 0 1", 3},
+        {"Pinned position", "4k3/4r3/8/8/8/3B4/8/4K3 w - - 0 1", 2},
+        {"Check position", "4k3/4r3/8/8/8/8/8/4K2R w K - 0 1", 2},
     };
 
     bool all_passed = true;

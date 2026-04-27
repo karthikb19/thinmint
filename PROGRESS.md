@@ -2,6 +2,41 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 12:00
+Sprint: sprint-04
+Feature: S04-F02
+Title: Implement basic move ordering heuristics
+Reason selected: next Sprint 04 feature after S04-F01
+Files changed: src/search/search.cpp, SPRINT.04.strength-stability.json, PROGRESS.md
+Tests run: ./scripts/verify.sh (25/25 tests passed, total test time 2.78s)
+Perft status: perft regression test remains part of verification and passed
+Git checkpoint: pending
+Result: success
+Known risks:
+- Added local search move ordering with MVV-LVA capture scoring, promotion priority, and a small castling bonus.
+- Ordering is applied at root, recursive negamax nodes, and quiescence move expansion.
+- Tactical regression runtime dropped from 10.93s after S04-F01 to 0.05s in the full verification run.
+- Heuristic state is intentionally not persistent yet; killer/history move work is deferred to S04-F04.
+Next suggested feature: S04-F03 - Implement Principal Variation Search (PVS)
+
+## 2026-04-27 11:30
+Sprint: sprint-04
+Feature: S04-F01
+Title: Implement quiescence search
+Reason selected: first Sprint 04 feature requested by user
+Files changed: src/search/search.cpp, include/thinmint/search/search.h, src/uci/protocol.cpp, tests/unit/tactical_regression_test.cpp, SPRINT.04.strength-stability.json
+Tests run: ./scripts/verify.sh (25/25 tests passed, total test time 13.60s)
+Perft status: perft regression test remains part of verification and passed
+Git checkpoint: pending
+Result: success
+Known risks:
+- Quiescence now searches tactical captures at the baseline search frontier and searches all legal evasions when the side to move is in check.
+- Added a conservative quiescence ply cap to keep tactical extensions bounded until move ordering and later search speed work land.
+- Removed the expensive full legal move generation from ordinary quiet quiescence nodes.
+- Fixed an invalid promotion regression fixture that previously allowed a pawn to capture the black king.
+- Reduced broad tactical legality smoke depths and changed UCI "go infinite" fallback from depth 6 to depth 3 so the synchronous test loop remains responsive.
+Next suggested feature: S04-F02 - Implement basic move ordering heuristics
+
 ## 2026-04-27 10:30
 Sprint: sprint-03
 Feature: S03-F10
@@ -553,4 +588,3 @@ Known risks:
 - FEN parsing rejects positions with EP squares where no pawn just moved (correctly validates rank but not pawn presence)
 - FEN parser uses std::istringstream which may have locale-dependent behavior for numbers
 Next suggested feature: Sprint 01 complete - proceed to Sprint 02 attack generation and legal move correctness
-

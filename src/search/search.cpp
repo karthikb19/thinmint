@@ -1,6 +1,7 @@
 #include "thinmint/search/search.h"
 
-#include <iostream>
+#include <algorithm>
+#include <array>
 
 #include "thinmint/board/makemove.h"
 #include "thinmint/board/unmakemove.h"
@@ -11,6 +12,64 @@ namespace thinmint::search {
 
 using namespace thinmint::eval;
 using namespace thinmint::movegen;
+
+namespace {
+
+inline constexpr int MAX_QUIESCENCE_PLY = 8;
+
+struct ScoredMove {
+    Move move;
+    int score;
+};
+
+struct OrderedMoves {
+    std::array<ScoredMove, MAX_MOVES> moves;
+    size_t count = 0;
+};
+
+int search_ply(const SearchStats& stats) {
+    return stats.current_depth;
+}
+
+int move_order_score(const BoardState& board, Move move) {
+    int score = 0;
+    PieceType attacker = board.piece_type_at(from_square(move));
+
+    if (is_capture(move) || is_en_passant(move)) {
+        PieceType victim = is_en_passant(move) ? PIECE_PAWN : board.piece_type_at(to_square(move));
+        score += 10000 + (10 * piece_value(victim)) - piece_value(attacker);
+    }
+
+    if (is_promotion(move)) {
+        score += 8000 + piece_value(promotion_type(move));
+    }
+
+    if (is_castling(move)) {
+        score += 50;
+    }
+
+    return score;
+}
+
+OrderedMoves order_moves(const BoardState& board, const MoveList& moves) {
+    OrderedMoves ordered;
+    ordered.count = moves.size();
+
+    for (size_t i = 0; i < moves.size(); ++i) {
+        Move move = moves[i];
+        ordered.moves[i] = {move, move_order_score(board, move)};
+    }
+
+    std::stable_sort(ordered.moves.begin(),
+                     ordered.moves.begin() + static_cast<std::ptrdiff_t>(ordered.count),
+                     [](const ScoredMove& lhs, const ScoredMove& rhs) {
+                         return lhs.score > rhs.score;
+                     });
+
+    return ordered;
+}
+
+}  // namespace
 
 bool is_terminal(const BoardState& board) {
     MoveList moves;
@@ -66,9 +125,9 @@ int negamax(BoardState& board, int depth, int alpha, int beta, SearchStats& stat
 
     int best_score = -INF_SCORE;
 
-    // Iterate through all legal moves
-    for (size_t i = 0; i < moves.size(); ++i) {
-        Move move = moves[i];
+    OrderedMoves ordered = order_moves(board, moves);
+    for (size_t i = 0; i < ordered.count; ++i) {
+        Move move = ordered.moves[i].move;
 
         // Make the move
         UndoState undo = make_move_with_undo(board, move);
@@ -132,9 +191,9 @@ SearchResult search_root(BoardState& board, int depth) {
     int alpha = -INF_SCORE;
     int beta = INF_SCORE;
 
-    // Search each root move
-    for (size_t i = 0; i < moves.size(); ++i) {
-        Move move = moves[i];
+    OrderedMoves ordered = order_moves(board, moves);
+    for (size_t i = 0; i < ordered.count; ++i) {
+        Move move = ordered.moves[i].move;
 
         // Make the move
         UndoState undo = make_move_with_undo(board, move);
@@ -174,74 +233,67 @@ SearchResult search_root(BoardState& board, int depth) {
 int quiescence(BoardState& board, int alpha, int beta, SearchStats& stats) {
     stats.nodes_searched++;
 
-    // Generate all legal moves to detect terminal positions and check status
-    MoveList all_moves;
-    generate_legal_moves(board, all_moves);
+    const bool in_check = board.is_check(board.side_to_move);
+    const int q_ply = search_ply(stats) - stats.current_max_depth;
 
-    // Terminal node: no legal moves
-    if (all_moves.empty()) {
+    if (q_ply >= MAX_QUIESCENCE_PLY) {
+        if (in_check) {
+            MoveList legal_moves;
+            generate_legal_moves(board, legal_moves);
+            if (legal_moves.empty()) {
+                stats.leaf_nodes++;
+                return get_terminal_score(board, stats.current_depth);
+            }
+        }
+
         stats.leaf_nodes++;
-        return get_terminal_score(board, stats.current_max_depth - stats.current_depth);
+        return evaluate(board);
     }
 
-    // Get static evaluation (stand-pat score)
-    int stand_pat = evaluate(board);
+    if (!in_check) {
+        int stand_pat = evaluate(board);
 
-    // Stand-pat: if static eval is already >= beta, we can cutoff
-    if (stand_pat >= beta) {
-        return beta;
+        if (stand_pat >= beta) {
+            return beta;
+        }
+
+        if (stand_pat > alpha) {
+            alpha = stand_pat;
+        }
     }
 
-    // Update alpha if stand-pat is better
-    if (stand_pat > alpha) {
-        alpha = stand_pat;
-    }
-
-    // If in check, search all legal moves (not just captures)
-    // to ensure we find a way out of check
-    bool in_check = board.is_check(board.side_to_move);
     MoveList moves;
     if (in_check) {
-        moves = all_moves;
+        generate_legal_moves(board, moves);
+        if (moves.empty()) {
+            stats.leaf_nodes++;
+            return get_terminal_score(board, stats.current_depth);
+        }
     } else {
         generate_legal_captures(board, moves);
     }
 
-    // If no captures (and not in check), just return static evaluation
     if (moves.empty()) {
         stats.leaf_nodes++;
-        return stand_pat;
+        return alpha;
     }
 
-    // Search captures (or all moves if in check)
-    for (size_t i = 0; i < moves.size(); ++i) {
-        Move move = moves[i];
+    OrderedMoves ordered = order_moves(board, moves);
+    for (size_t i = 0; i < ordered.count; ++i) {
+        Move move = ordered.moves[i].move;
 
-        // Defensive check: verify there's a piece at the from square
-        if (board.piece_type_at(from_square(move)) == PIECE_NONE) {
-            std::cerr << "QUIESCENCE BUG: no piece at from square " << from_square(move)
-                      << " for move " << move << " in_check=" << in_check
-                      << " stand_pat=" << stand_pat << std::endl;
-            continue;
-        }
-
-        // Make the move
         UndoState undo = make_move_with_undo(board, move);
         stats.current_depth++;
 
-        // Recursively search with negated window
         int score = -quiescence(board, -beta, -alpha, stats);
 
-        // Unmake the move
         unmake_move(board, undo);
         stats.current_depth--;
 
-        // Check for beta cutoff (fail-high)
         if (score >= beta) {
             return beta;
         }
 
-        // Update alpha
         if (score > alpha) {
             alpha = score;
         }

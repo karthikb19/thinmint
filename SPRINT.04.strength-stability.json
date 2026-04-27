@@ -11,7 +11,7 @@
       "Quiescence search is called from the baseline search frontier",
       "Basic capture sequences are resolved more stably"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S04-F02",
@@ -25,7 +25,7 @@
       "Captures and obvious strong moves are prioritized",
       "Search node count improves on benchmark positions"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S04-F03",

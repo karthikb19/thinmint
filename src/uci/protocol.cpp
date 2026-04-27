@@ -238,8 +238,8 @@ void Protocol::HandleGo(std::istringstream& iss, std::ostream& out) {
       iss >> value;
     } else if (token == "infinite") {
       // Infinite search - we'll use a reasonable max depth
-      // Depth 6 is enough for meaningful search without excessive time
-      depth = 6;
+      // Depth 3 keeps the current synchronous implementation responsive.
+      depth = 3;
     }
   }
 

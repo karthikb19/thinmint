@@ -93,8 +93,9 @@ SearchResult search_root(BoardState& board, int depth);
 // Returns: SearchResult containing best move and score from deepest iteration
 SearchResult iterative_deepening(BoardState& board, int max_depth, SearchStats* stats = nullptr);
 
-// Quiescence search stub (for later sprint)
-// Currently just returns static evaluation
+// Quiescence search that extends leaf evaluation through tactical captures.
+// When the side to move is in check, all legal evasions are searched so mate
+// and forced escapes are handled at the frontier.
 int quiescence(BoardState& board, int alpha, int beta, SearchStats& stats);
 
 // Check if the current position is a terminal node (checkmate or stalemate)
