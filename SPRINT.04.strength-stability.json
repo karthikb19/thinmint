@@ -128,7 +128,7 @@
       "Engine reports node counts or benchmark output",
       "A repeatable benchmark command is documented"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "S04-F10",

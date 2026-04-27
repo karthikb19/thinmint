@@ -5,15 +5,14 @@ OpenCode loop.
 
 ## Current state
 
-This repository currently contains bootstrap scaffolding only:
+This repository currently contains a working bitboard engine baseline:
 
 - C++20 project via CMake
 - `thinmint` executable target
 - `thinmint_core` library target
-- a minimal smoke test
+- legal move generation, make/unmake, perft, UCI parsing, evaluation, and search tests
+- a repeatable search benchmark command
 - `scripts/verify.sh` for the control loop
-
-No chess logic has been implemented yet.
 
 ## Build
 
@@ -33,6 +32,23 @@ ctest --test-dir build --output-on-failure
 ```bash
 ./scripts/verify.sh
 ```
+
+## Benchmark
+
+Run a fixed search benchmark after building:
+
+```bash
+build/thinmint bench
+```
+
+The optional depth argument is clamped to `1..6`:
+
+```bash
+build/thinmint bench 4
+```
+
+The benchmark prints per-position `nodes` plus total nodes, elapsed milliseconds,
+and nodes per second.
 
 ## OpenCode loop inputs
 

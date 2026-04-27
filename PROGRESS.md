@@ -2,6 +2,23 @@
 
 Append one entry per iteration.
 
+## 2026-04-27 15:30
+Sprint: sprint-04
+Feature: S04-F09
+Title: Add node counting and benchmarking support
+Reason selected: next Sprint 04 feature after S04-F08; dependency S04-F03 satisfied
+Files changed: src/main.cpp, README.md, SPRINT.04.strength-stability.json, PROGRESS.md
+Tests run: ./scripts/verify.sh (25/25 tests passed, total test time 0.23s); build/thinmint bench 3
+Perft status: perft regression test remains part of verification and passed
+Git checkpoint: pending
+Result: success
+Known risks:
+- Added `thinmint bench [depth]` with a fixed five-position suite and clamped depth range 1..6.
+- Benchmark reports per-position depth, score, nodes, bestmove, plus total nodes, elapsed milliseconds, and NPS.
+- Example depth-3 benchmark: total nodes 23470, time_ms 97, nps 241958.
+- README documents repeatable benchmark commands.
+Next suggested feature: S04-F10 - Add search regression suite and no-regression gates
+
 ## 2026-04-27 15:00
 Sprint: sprint-04
 Feature: S04-F08
